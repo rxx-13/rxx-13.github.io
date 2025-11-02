@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Моя страница</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поисковые системы</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Привет, мир!</h1>
-    <p>Это моя не первая веб-страница.</p>
-    <div class="div">
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
+    <div class="container">
+        <button class="btn google" onclick="goToGoogle()">Google</button>
+        <button class="btn yandex" onclick="goToYandex()">Яндекс</button>
+        <button class="btn duckduckgo" onclick="goToDuckDuckGo()">DuckDuckGo</button>
     </div>
+    <script src="script.js"></script>
 </body>
 </html>
