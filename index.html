@@ -1,17 +1,630 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поисковые системы</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Кнопка Счастья™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --panel: #12121e;
+      --neon-pink: #ff2d78;
+      --neon-cyan: #00f5ff;
+      --neon-yellow: #ffe500;
+      --neon-green: #39ff14;
+      --text: #e8e8f0;
+      --pixel: 4px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    #cursor {
+      width: 16px; height: 16px;
+      background: var(--neon-cyan);
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      image-rendering: pixelated;
+      clip-path: polygon(0 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%);
+      transition: transform 0.1s;
+    }
+
+    /* Scanlines overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 3rem 1rem 1rem;
+      position: relative;
+    }
+
+    .logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(1.2rem, 4vw, 2.2rem);
+      color: var(--neon-cyan);
+      text-shadow:
+        0 0 10px var(--neon-cyan),
+        0 0 30px var(--neon-cyan),
+        0 0 60px rgba(0,245,255,0.4);
+      animation: flicker 5s infinite;
+      line-height: 1.6;
+    }
+
+    .logo span { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink), 0 0 30px var(--neon-pink); }
+
+    .subtitle {
+      color: var(--neon-yellow);
+      font-size: 1.4rem;
+      margin-top: 0.5rem;
+      opacity: 0.8;
+      letter-spacing: 3px;
+    }
+
+    @keyframes flicker {
+      0%,96%,98%,100% { opacity: 1; }
+      97% { opacity: 0.3; }
+      99% { opacity: 0.7; }
+    }
+
+    /* Counter section */
+    .counter-zone {
+      text-align: center;
+      margin: 2rem auto;
+      max-width: 600px;
+      padding: 0 1rem;
+    }
+
+    .counter-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .counter-display {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(2.5rem, 10vw, 5rem);
+      color: var(--neon-green);
+      text-shadow: 0 0 20px var(--neon-green), 0 0 50px rgba(57,255,20,0.3);
+      line-height: 1;
+      transition: transform 0.1s;
+    }
+
+    .counter-display.bump {
+      animation: bump 0.15s ease-out;
+    }
+
+    @keyframes bump {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* THE BUTTON */
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+    }
+
+    #big-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+      padding: 1.5rem 3rem;
+      background: var(--neon-pink);
+      color: #fff;
+      border: none;
+      cursor: none;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: transform 0.08s;
+      /* pixel border */
+      box-shadow:
+        var(--pixel) 0 0 #ff0050,
+        0 var(--pixel) 0 #ff0050,
+        var(--pixel) var(--pixel) 0 #aa0033,
+        calc(var(--pixel)*2) 0 0 #aa0033,
+        0 calc(var(--pixel)*2) 0 #aa0033,
+        calc(var(--pixel)*2) calc(var(--pixel)*2) 0 #660022,
+        0 0 30px rgba(255,45,120,0.5),
+        0 0 60px rgba(255,45,120,0.2);
+    }
+
+    #big-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow:
+        calc(var(--pixel)*1.5) 0 0 #ff0050,
+        0 calc(var(--pixel)*1.5) 0 #ff0050,
+        calc(var(--pixel)*3) 0 0 #aa0033,
+        0 calc(var(--pixel)*3) 0 #aa0033,
+        calc(var(--pixel)*3) calc(var(--pixel)*3) 0 #660022,
+        0 0 50px rgba(255,45,120,0.7),
+        0 0 100px rgba(255,45,120,0.3);
+    }
+
+    #big-btn:active {
+      transform: translate(4px, 4px);
+      box-shadow:
+        0 0 0 #ff0050,
+        0 0 10px rgba(255,45,120,0.3);
+    }
+
+    /* Message box */
+    .message-box {
+      max-width: 640px;
+      margin: 0 auto 2rem;
+      padding: 1.2rem 2rem;
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0,245,255,0.2), inset 0 0 20px rgba(0,245,255,0.03);
+      position: relative;
+      text-align: center;
+      font-size: 1.5rem;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+
+    .message-box::before {
+      content: '> СООБЩЕНИЕ_СИСТЕМЫ <';
+      position: absolute;
+      top: -0.7em;
+      left: 1rem;
+      background: var(--bg);
+      padding: 0 0.5rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      color: var(--neon-cyan);
+      letter-spacing: 2px;
+    }
+
+    #message-text {
+      color: var(--neon-yellow);
+    }
+
+    .flash { animation: flash-anim 0.3s ease-out; }
+    @keyframes flash-anim {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Achievements */
+    .achievements {
+      max-width: 640px;
+      margin: 0 auto 3rem;
+      padding: 0 1rem;
+    }
+
+    .ach-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 4px;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .ach-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .ach-item {
+      border: 2px solid rgba(255,255,255,0.1);
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ach-item.unlocked {
+      border-color: var(--neon-yellow);
+      color: var(--neon-yellow);
+      box-shadow: 0 0 15px rgba(255,229,0,0.2);
+    }
+
+    .ach-item .ach-icon { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
+    .ach-item .ach-name { font-size: 0.85rem; line-height: 1.2; }
+
+    .ach-unlock-anim {
+      animation: ach-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes ach-pop {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Particles */
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 500;
+      font-size: 1.2rem;
+      animation: particle-fly 1s ease-out forwards;
+    }
+
+    @keyframes particle-fly {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+    }
+
+    /* Stats bar */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 0 auto 2rem;
+      max-width: 640px;
+      padding: 0 1rem;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .stat-item { text-align: center; }
+    .stat-val {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.9rem;
+      color: var(--neon-cyan);
+      display: block;
+      margin-top: 0.2rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.9rem;
+      letter-spacing: 3px;
+    }
+
+    footer a { color: var(--neon-pink); text-decoration: none; }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: var(--panel);
+      border: 2px solid var(--neon-green);
+      padding: 1rem 1.5rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      color: var(--neon-green);
+      box-shadow: 0 0 20px rgba(57,255,20,0.3);
+      z-index: 800;
+      max-width: 260px;
+      line-height: 1.8;
+      transform: translateX(200%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #toast.show { transform: translateX(0); }
+
+    /* Easter egg */
+    #konami-hint {
+      text-align: center;
+      color: rgba(255,255,255,0.08);
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      margin-bottom: 1rem;
+      transition: color 0.5s;
+    }
+    #konami-hint.revealed { color: rgba(255,229,0,0.6); }
+
+    /* Rage mode */
+    body.rage {
+      animation: rage-shake 0.1s infinite;
+    }
+    @keyframes rage-shake {
+      0%,100% { transform: translate(0,0); }
+      25% { transform: translate(-3px, 2px); }
+      75% { transform: translate(3px, -2px); }
+    }
+
+    /* CRT glow pulse */
+    @keyframes glow-pulse {
+      0%,100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <button class="btn google" onclick="goToGoogle()">Google</button>
-        <button class="btn yandex" onclick="goToYandex()">Яндекс</button>
-        <button class="btn duckduckgo" onclick="goToDuckDuckGo()">DuckDuckGo</button>
-    </div>
-    <script src="script.js"></script>
+
+<div id="cursor"></div>
+
+<header>
+  <div class="logo">КНОПКА<br><span>СЧАСТЬЯ™</span></div>
+  <div class="subtitle">// v1.0.0 — СЕКРЕТНЫЙ ПРОЕКТ //</div>
+</header>
+
+<div class="counter-zone">
+  <div class="counter-label">// нажатий совершено //</div>
+  <div class="counter-display" id="counter">0</div>
+</div>
+
+<div class="btn-container">
+  <button id="big-btn">[ НАЖАТЬ ]</button>
+</div>
+
+<div class="message-box">
+  <span id="message-text">Нажми кнопку. Просто сделай это.</span>
+</div>
+
+<div class="stats">
+  <div class="stat-item">НАЖАТИЙ/МИН<span class="stat-val" id="cpm">0</span></div>
+  <div class="stat-item">РЕЖИМ<span class="stat-val" id="mode-display">ОБЫЧНЫЙ</span></div>
+  <div class="stat-item">РЕКОРД<span class="stat-val" id="best-cpm">0</span></div>
+</div>
+
+<div class="achievements">
+  <div class="ach-title">// ДОСТИЖЕНИЯ //</div>
+  <div class="ach-grid" id="ach-grid"></div>
+</div>
+
+<div id="konami-hint">↑ ↑ ↓ ↓ ← → ← → B A</div>
+
+<footer>
+  сделано из <span style="color:var(--neon-pink)">♥</span> и кофе &nbsp;|&nbsp; github pages ready<br>
+  <small style="opacity:0.5">© 2025 — никаких прав не защищено</small>
+</footer>
+
+<div id="toast">🎉 ДОСТИЖЕНИЕ<br>РАЗБЛОКИРОВАНО!</div>
+
+<script>
+  // ─── Cursor ───
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = (e.clientX - 8) + 'px';
+    cursor.style.top  = (e.clientY - 8) + 'px';
+  });
+  document.addEventListener('mousedown', () => cursor.style.transform = 'scale(0.7)');
+  document.addEventListener('mouseup',   () => cursor.style.transform = 'scale(1)');
+
+  // ─── State ───
+  let count = 0;
+  let clickTimes = [];
+  let bestCPM   = 0;
+  let konamiIdx = 0;
+
+  const MESSAGES = [
+    "Ты молодец! Не останавливайся.",
+    "Хм. Ещё один клик в пустоту.",
+    "Статистика NASA не учитывала тебя.",
+    "Где-то хлопнула бабочка крыльями.",
+    "Это войдёт в историю. Наверное.",
+    "Кнопка тебе благодарна.",
+    "Учёные до сих пор спорят зачем.",
+    "Сервер чувствует твою решимость.",
+    "Это уже искусство, честно.",
+    "Продолжай. Никто не смотрит.",
+    "Ты изменил мир на 0.001%.",
+    "Кофе-брейк? Нет? Ладно.",
+    "Миллионы нажатий до тебя. Ты особенный.",
+    "ЦУП засёк аномалию. Это ты.",
+    "Пальцы не предают. Жми.",
+    "Нажатие принято. Обрабатывается... готово.",
+    "Квантовый компьютер завидует.",
+    "Кот где-то упал с дивана.",
+    "404: смысл не найден. Но кнопка работает.",
+    "ERROR 418: я чайник, но ты жмёшь.",
+    "git commit -m 'ещё одно нажатие'",
+    "sudo rm -rf скука/",
+    "Гравитация всё ещё работает. И кнопка тоже.",
+    "Инженеры этой кнопки гордятся тобой.",
+    "Ты превзошёл ожидания. Все ожидания.",
+  ];
+
+  const ACHIEVEMENTS = [
+    { id: 'first',   icon: '🖱️',  name: 'Первый шаг',      req: 1    },
+    { id: 'ten',     icon: '🔥',  name: 'Разогрев',         req: 10   },
+    { id: 'fifty',   icon: '💪',  name: 'Серьёзно?!',       req: 50   },
+    { id: 'hundred', icon: '💯',  name: 'Сотня!',           req: 100  },
+    { id: 'speed',   icon: '⚡',  name: 'Молния',           req: null },
+    { id: 'rage',    icon: '😤',  name: 'Режим ярости',     req: null },
+    { id: 'konami',  icon: '🕹️',  name: 'Гейм-мастер',      req: null },
+    { id: 'five00',  icon: '🚀',  name: 'За горизонт',      req: 500  },
+  ];
+
+  let unlocked = new Set();
+
+  // ─── Render achievements ───
+  const grid = document.getElementById('ach-grid');
+  ACHIEVEMENTS.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'ach-item';
+    el.id = 'ach-' + a.id;
+    el.innerHTML = `<span class="ach-icon">${a.icon}</span><span class="ach-name">${a.name}</span>`;
+    grid.appendChild(el);
+  });
+
+  function unlock(id) {
+    if (unlocked.has(id)) return;
+    unlocked.add(id);
+    const el = document.getElementById('ach-' + id);
+    el.classList.add('unlocked', 'ach-unlock-anim');
+    showToast();
+  }
+
+  let toastTimer;
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ─── Particles ───
+  const EMOJIS = ['✨','💥','⭐','🎉','💫','🔥','❤️','👾','🌟'];
+  function spawnParticles(x, y) {
+    const n = Math.floor(Math.random() * 5) + 3;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+      const dx = (Math.random() - 0.5) * 200;
+      const dy = -(Math.random() * 150 + 50);
+      p.style.setProperty('--dx', dx + 'px');
+      p.style.setProperty('--dy', dy + 'px');
+      p.style.left = (x - 10) + 'px';
+      p.style.top  = (y - 10) + 'px';
+      p.style.animationDuration = (Math.random() * 0.5 + 0.7) + 's';
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove());
+    }
+  }
+
+  // ─── CPM ───
+  function calcCPM() {
+    const now = Date.now();
+    clickTimes = clickTimes.filter(t => now - t < 60000);
+    return clickTimes.length;
+  }
+
+  setInterval(() => {
+    const cpm = calcCPM();
+    document.getElementById('cpm').textContent = cpm;
+    if (cpm > bestCPM) {
+      bestCPM = cpm;
+      document.getElementById('best-cpm').textContent = bestCPM;
+    }
+    // speed achievement: 20+ CPM
+    if (cpm >= 20) unlock('speed');
+
+    // mode display
+    const modeEl = document.getElementById('mode-display');
+    if (cpm >= 60) {
+      modeEl.textContent = 'БЕЗУМИЕ';
+      modeEl.style.color = 'var(--neon-pink)';
+    } else if (cpm >= 30) {
+      modeEl.textContent = 'ТУРБО';
+      modeEl.style.color = 'var(--neon-yellow)';
+    } else if (cpm >= 10) {
+      modeEl.textContent = 'АКТИВНЫЙ';
+      modeEl.style.color = 'var(--neon-green)';
+    } else {
+      modeEl.textContent = 'ОБЫЧНЫЙ';
+      modeEl.style.color = 'var(--neon-cyan)';
+    }
+  }, 500);
+
+  // ─── Message update ───
+  let lastMsg = -1;
+  function updateMessage() {
+    let idx;
+    do { idx = Math.floor(Math.random() * MESSAGES.length); }
+    while (idx === lastMsg);
+    lastMsg = idx;
+    const el = document.getElementById('message-text');
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.textContent = MESSAGES[idx];
+    el.classList.add('flash');
+  }
+
+  // ─── Rage mode ───
+  let rageTimer;
+  function triggerRage() {
+    if (unlocked.has('rage')) return;
+    unlock('rage');
+    document.body.classList.add('rage');
+    document.getElementById('message-text').textContent = '😤😤😤 РЕЖИМ ЯРОСТИ АКТИВИРОВАН 😤😤😤';
+    rageTimer = setTimeout(() => document.body.classList.remove('rage'), 1500);
+  }
+
+  // ─── Main click handler ───
+  document.getElementById('big-btn').addEventListener('click', function(e) {
+    count++;
+    clickTimes.push(Date.now());
+
+    // counter
+    const counterEl = document.getElementById('counter');
+    counterEl.textContent = count;
+    counterEl.classList.remove('bump');
+    void counterEl.offsetWidth;
+    counterEl.classList.add('bump');
+
+    // particles
+    spawnParticles(e.clientX, e.clientY);
+
+    // update message every 3-5 clicks
+    if (count % (Math.floor(Math.random() * 3) + 2) === 0) updateMessage();
+
+    // achievements by count
+    ACHIEVEMENTS.filter(a => a.req && count >= a.req).forEach(a => unlock(a.id));
+
+    // rage: rapid clicking 10 in 2 seconds
+    const recent = clickTimes.filter(t => Date.now() - t < 2000);
+    if (recent.length >= 10) triggerRage();
+  });
+
+  // ─── Konami code ───
+  const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown',
+                  'ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  document.addEventListener('keydown', e => {
+    if (e.key === KONAMI[konamiIdx]) {
+      konamiIdx++;
+      document.getElementById('konami-hint').classList.add('revealed');
+      if (konamiIdx === KONAMI.length) {
+        konamiIdx = 0;
+        unlock('konami');
+        document.getElementById('message-text').textContent = '🕹️ КОД КОНАМИ! ТЫ ПРОШЁЛ ИГРУ!';
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => {
+            spawnParticles(
+              Math.random() * window.innerWidth,
+              Math.random() * window.innerHeight
+            );
+          }, i * 200);
+        }
+        setTimeout(() => document.getElementById('konami-hint').classList.remove('revealed'), 3000);
+      }
+    } else {
+      konamiIdx = 0;
+      document.getElementById('konami-hint').classList.remove('revealed');
+    }
+  });
+</script>
 </body>
 </html>
