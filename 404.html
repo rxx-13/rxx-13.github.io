@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<title>Scriptorium</title>
+<script>
+  // GitHub Pages не знает о SPA-маршрутах — перехватываем 404
+  // и передаём путь в index.html через query-параметр ?p=
+  var path = window.location.pathname;
+  var hash = window.location.hash;
+  window.location.replace('/?p=' + encodeURIComponent(path) + hash);
+</script>

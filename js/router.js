@@ -1,92 +1,120 @@
 // ════════════════════════════════════════════════════════
-//  router.js — Хэш-навигация
-//  URL: /scriptorium/#home, /#archive, /#ocr, /#profile …
+//  router.js — URL-маршрутизация (History API)
+//  Загружается последним, после всех остальных скриптов.
 // ════════════════════════════════════════════════════════
 
+// ── Таблица маршрутов ─────────────────────────────────
 var ROUTES = {
-  '':        { screen: 'auth' },
-  'login':   { screen: 'auth' },
-  'home':    { screen: 'dashboard', panel: 'docs'    },
-  'archive': { screen: 'dashboard', panel: 'archive' },
-  'export':  { screen: 'dashboard', panel: 'export'  },
-  'batch':   { screen: 'dashboard', panel: 'batch'   },
-  'ocr':     { screen: 'editor'  },
-  'profile': { screen: 'profile' }
+  '/':        { screen: 'auth' },
+  '/login':   { screen: 'auth' },
+  '/home':    { screen: 'dashboard', panel: 'docs' },
+  '/archive': { screen: 'dashboard', panel: 'archive' },
+  '/export':  { screen: 'dashboard', panel: 'export' },
+  '/batch':   { screen: 'dashboard', panel: 'batch' },
+  '/ocr':     { screen: 'editor' },
+  '/profile': { screen: 'profile' }
 };
 
-// Публичная функция навигации — вызывай отовсюду: navigate('archive')
-function navigate(hash) {
-  if (window.location.hash === '#' + hash) {
-    _applyRoute(hash); // принудительный рендер при повторном клике
-  } else {
-    window.location.hash = hash;
-  }
-}
+var PANEL_PATHS = {
+  docs:    '/home',
+  archive: '/archive',
+  export:  '/export',
+  batch:   '/batch'
+};
 
-function _applyRoute(hash) {
-  var route = ROUTES[hash] || null;
+// Состояние авторизации (устанавливается из auth.js)
+window._isLoggedIn    = false;
+window._pendingRoute  = null;
+window._currentUserName = null;
 
-  if (!route) {
-    // Неизвестный маршрут → домой (или логин)
-    navigate(window._loggedIn ? 'home' : 'login');
+// ── handleRoute — читает URL, показывает нужный экран ─
+function handleRoute() {
+  var path  = window.location.pathname;
+  var route = ROUTES[path] || ROUTES['/'];
+
+  // Не залогинен → запоминаем цель, отправляем на /
+  if (route.screen !== 'auth' && !window._isLoggedIn) {
+    window._pendingRoute = path;
+    _showScreen('auth');
+    history.replaceState(null, '', '/');
     return;
   }
 
-  // Защита: неавторизованным доступ только к auth
-  if (route.screen !== 'auth' && !window._loggedIn) {
-    navigate('login');
+  // Уже залогинен и пришёл на / → перенаправляем на /home
+  if (route.screen === 'auth' && window._isLoggedIn) {
+    history.replaceState(null, '', '/home');
+    _showScreen('dashboard');
+    window._origSwitchDashPanel('docs');
     return;
   }
 
-  _activateScreen(route.screen);
-
+  _showScreen(route.screen);
   if (route.screen === 'dashboard' && route.panel) {
-    switchDashPanel(route.panel);
-  }
-
-  if (route.screen === 'profile') {
-    _renderProfile();
+    window._origSwitchDashPanel(route.panel);
   }
 }
 
-function _activateScreen(id) {
+// ── Внутренний показ экрана (без pushState) ──────────
+function _showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s) {
     s.classList.remove('active');
   });
-  var el = document.getElementById('screen-' + id);
-  if (el) el.classList.add('active');
-  // При уходе из редактора сбрасываем активный документ
-  if (id !== 'editor') currentDocId = null;
+  var t = document.getElementById('screen-' + id);
+  if (t) t.classList.add('active');
+  if (id === 'dashboard' && typeof currentDocId !== 'undefined') currentDocId = null;
+  if (id === 'profile') _renderProfile();
 }
 
+// ── Рендер страницы профиля ───────────────────────────
 function _renderProfile() {
-  var name = window._currentUser || 'Гость';
-  var initial = name.charAt(0).toUpperCase();
+  var name = window._currentUserName || 'Гость';
+  var nameEl = document.getElementById('profileName');
+  var initEl = document.getElementById('profileInit');
+  var docsEl = document.getElementById('profileDocs');
+  var archEl = document.getElementById('profileArchive');
+  var pagesEl = document.getElementById('profilePages');
+  if (nameEl)  nameEl.textContent  = name;
+  if (initEl)  initEl.textContent  = name.charAt(0).toUpperCase();
+  var docs  = Object.keys(uploadedDocs  || {}).length;
+  var arch  = (archiveItems || []).length;
+  var pages = 0;
+  Object.keys(uploadedDocs || {}).forEach(function(id) {
+    var d = uploadedDocs[id];
+    if (d && d.pageWords) d.pageWords.forEach(function(pw){ if (pw) pages++; });
+  });
+  if (docsEl)  docsEl.textContent  = docs;
+  if (archEl)  archEl.textContent  = arch;
+  if (pagesEl) pagesEl.textContent = pages;
+  document.querySelectorAll('.nav-avatar').forEach(function(a) {
+    a.textContent = name.charAt(0).toUpperCase();
+  });
+}
 
-  var els = {
-    avatar:   document.getElementById('profileAvatar'),
-    avatarLg: document.getElementById('profileAvatarLg'),
-    name:     document.getElementById('profileName'),
-    docs:     document.getElementById('pStatDocs'),
-    archive:  document.getElementById('pStatArchive'),
-    exports:  document.getElementById('pStatExport')
+// ── popstate — кнопки «Назад» / «Вперёд» в браузере ──
+window.addEventListener('popstate', handleRoute);
+
+// ── DOMContentLoaded ──────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  // Сохраняем оригинальный switchDashPanel до обёртки
+  window._origSwitchDashPanel = window.switchDashPanel;
+
+  // Обёртка: switchDashPanel теперь обновляет URL
+  window.switchDashPanel = function(panel) {
+    window._origSwitchDashPanel(panel);
+    var path = PANEL_PATHS[panel] || '/home';
+    if (window.location.pathname !== path) {
+      history.pushState(null, '', path);
+    }
   };
 
-  if (els.avatar)   els.avatar.textContent   = initial;
-  if (els.avatarLg) els.avatarLg.textContent = initial;
-  if (els.name)     els.name.textContent     = name;
+  // GitHub Pages 404.html redirect trick:
+  // 404.html кодирует путь в ?p=/home и редиректит сюда
+  var params = new URLSearchParams(window.location.search);
+  var redir = params.get('p');
+  if (redir) {
+    history.replaceState(null, '', redir);
+  }
 
-  // Статистика из глобальных переменных dashboard.js
-  if (els.docs)    els.docs.textContent    = Object.keys(uploadedDocs || {}).length;
-  if (els.archive) els.archive.textContent = (archiveItems || []).length;
-  if (els.exports) els.exports.textContent = (exportHistory || []).length;
-}
-
-// ── Слушатели ──────────────────────────────────────────
-window.addEventListener('hashchange', function() {
-  _applyRoute(window.location.hash.replace(/^#/, ''));
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-  _applyRoute(window.location.hash.replace(/^#/, ''));
+  // Начальный маршрут
+  handleRoute();
 });

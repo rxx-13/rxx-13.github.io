@@ -81,32 +81,29 @@
 <!-- ═══════ DASHBOARD ═══════ -->
 <div id="screen-dashboard" class="screen">
   <nav class="topnav">
-    <div class="nav-logo" onclick="navigate('home')" style="cursor:pointer;">Scriptorium</div>
+    <div class="nav-logo" onclick="goTo('dashboard')">Scriptorium</div>
     <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn" onclick="logout()">Выйти</button>
-    <div class="nav-avatar" id="dashAvatar" title="Личный кабинет" onclick="navigate('profile')" style="cursor:pointer;">И</div>
+    <button type="button" class="nav-btn" onclick="goTo('auth')">Выйти</button>
+    <div class="nav-avatar" title="Личный кабинет" onclick="goTo('profile')" style="cursor:pointer;">И</div>
   </nav>
   <div class="dashboard-body">
     <aside class="dash-sidebar">
       <div class="dash-sidebar-title">Меню</div>
-      <div class="sidebar-item active" id="nav-docs" onclick="navigate('home')">
+      <div class="sidebar-item active" id="nav-docs" onclick="switchDashPanel('docs')">
         <span class="si-icon">📁</span> Мои документы
       </div>
-      <div class="sidebar-item" id="nav-archive" onclick="navigate('archive')">
+      <div class="sidebar-item" id="nav-archive" onclick="switchDashPanel('archive')">
         <span class="si-icon">🗃️</span> Архив
       </div>
-      <div class="sidebar-item" id="nav-export" onclick="navigate('export')">
+      <div class="sidebar-item" id="nav-export" onclick="switchDashPanel('export')">
         <span class="si-icon">📤</span> История экспорта
       </div>
       <div class="dash-sidebar-title">Инструменты</div>
       <div class="sidebar-item" onclick="document.getElementById('fileInput').click()">
         <span class="si-icon">⬆️</span> Загрузить файл
       </div>
-      <div class="sidebar-item" id="nav-batch" onclick="navigate('batch')">
+      <div class="sidebar-item" id="nav-batch" onclick="switchDashPanel('batch')">
         <span class="si-icon">⚡</span> Пакетная обработка
-      </div>
-      <div class="sidebar-item" id="nav-profile" onclick="navigate('profile')">
-        <span class="si-icon">👤</span> Профиль
       </div>
     </aside>
     <main class="dash-main">
@@ -191,11 +188,11 @@
 <!-- ═══════ EDITOR ═══════ -->
 <div id="screen-editor" class="screen">
   <nav class="topnav">
-    <div class="nav-logo" onclick="navigate('home')" style="cursor:pointer;">← Scriptorium</div>
+    <div class="nav-logo" onclick="goTo('dashboard')" style="cursor:pointer;">← Scriptorium</div>
     <div class="nav-spacer"></div>
     <span id="editorDocName" style="font-size:13px;color:var(--muted-light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></span>
     <div class="nav-spacer"></div>
-    <div class="nav-avatar">И</div>
+    <div class="nav-avatar" onclick="goTo('profile')" style="cursor:pointer;">И</div>
   </nav>
 
   <div class="editor-toolbar">
@@ -332,35 +329,24 @@
 <!-- ═══════ PROFILE ═══════ -->
 <div id="screen-profile" class="screen">
   <nav class="topnav">
-    <div class="nav-logo" onclick="navigate('home')" style="cursor:pointer;">← Scriptorium</div>
+    <div class="nav-logo" onclick="goTo('dashboard')" style="cursor:pointer;">← Scriptorium</div>
     <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn" onclick="logout()">Выйти</button>
-    <div class="nav-avatar" id="profileAvatar" style="cursor:pointer;">И</div>
+    <button type="button" class="nav-btn" onclick="goTo('auth')">Выйти</button>
+    <div class="nav-avatar" onclick="goTo('profile')" style="cursor:pointer;">И</div>
   </nav>
-  <div class="profile-body">
-    <div class="profile-card">
-      <div class="profile-avatar-lg" id="profileAvatarLg">И</div>
-      <div class="profile-name" id="profileName">Пользователь</div>
-      <div class="profile-meta">Сессия активна</div>
-      <div class="profile-stats">
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="pStatDocs">0</div>
-          <div class="profile-stat-label">Документов</div>
-        </div>
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="pStatArchive">0</div>
-          <div class="profile-stat-label">В архиве</div>
-        </div>
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="pStatExport">0</div>
-          <div class="profile-stat-label">Экспортов</div>
-        </div>
-      </div>
-      <button type="button" class="auth-btn" onclick="logout()"
-        style="margin-top:16px;max-width:260px;padding:14px;">
-        Выйти из системы
-      </button>
+  <div style="max-width:480px;margin:60px auto;padding:0 24px;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div id="profileInit" style="width:80px;height:80px;border-radius:50%;background:var(--navy);color:white;font-size:36px;font-family:'Playfair Display',serif;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"></div>
+      <div id="profileName" style="font-size:22px;font-family:'Playfair Display',serif;font-weight:700;color:var(--ink);margin-bottom:6px;"></div>
+      <div style="font-size:13px;color:var(--muted);">Текущая сессия</div>
     </div>
+    <div class="stats-row" style="margin-bottom:40px;">
+      <div class="stat-card accent"><div class="stat-value" id="profileDocs">0</div><div class="stat-label">Документов</div></div>
+      <div class="stat-card"><div class="stat-value" id="profileArchive">0</div><div class="stat-label">В архиве</div></div>
+      <div class="stat-card"><div class="stat-value" id="profilePages">0</div><div class="stat-label">Страниц</div></div>
+    </div>
+    <button type="button" class="auth-btn" onclick="goTo('auth')"
+      style="background:#b03a2e;border-color:#b03a2e;">Выйти из системы</button>
   </div>
 </div>
 

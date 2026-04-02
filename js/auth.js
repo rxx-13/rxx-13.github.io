@@ -2,21 +2,18 @@
 //  auth.js — Авторизация, навигация, toast
 // ════════════════════════════════════════════════════════
 
-// ── СОСТОЯНИЕ СЕССИИ ──────────────────────────────────
-window._loggedIn = false;
-window._currentUser = '';
-
 // ── НАВИГАЦИЯ ─────────────────────────────────────────
-// Совместимость со старыми вызовами goTo('dashboard') / goTo('editor')
-function goTo(id) {
-  var map = { dashboard: 'home', editor: 'ocr', auth: 'login' };
-  navigate(map[id] || id);
-}
+var SCREEN_PATHS = { auth: '/', dashboard: '/home', editor: '/ocr', profile: '/profile' };
 
-function logout() {
-  window._loggedIn = false;
-  window._currentUser = '';
-  navigate('login');
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.getElementById('screen-' + id).classList.add('active');
+  if (id === 'dashboard') currentDocId = null;
+  var path = SCREEN_PATHS[id] || '/';
+  if (window.location.pathname !== path) history.pushState(null, '', path);
+  if (id === 'auth') window._isLoggedIn = false;
 }
 
 function switchTab(tab) {
@@ -107,16 +104,18 @@ function loginAsGuest() {
 
 // ── ЗАВЕРШЕНИЕ ВХОДА ───────────────────────────────────
 function finishLogin(displayName) {
-  window._loggedIn = true;
-  window._currentUser = displayName;
-
-  var initial = displayName.charAt(0).toUpperCase();
+  window._isLoggedIn = true;
+  window._currentUserName = displayName;
   document.querySelectorAll('.nav-avatar').forEach(function(a) {
-    a.textContent = initial;
+    a.textContent = displayName.charAt(0).toUpperCase();
   });
   var sub = document.getElementById('dashSubtitle');
   if (sub) sub.textContent = 'Добро пожаловать, ' + displayName + '!';
-  navigate('home');
+  // Если пользователь пришёл по прямой ссылке — ведём туда
+  var target = window._pendingRoute || '/home';
+  window._pendingRoute = null;
+  history.pushState(null, '', target);
+  handleRoute(); // определена в router.js
 }
 
 // ── ИНИЦИАЛИЗАЦИЯ КНОПОК ──────────────────────────────
