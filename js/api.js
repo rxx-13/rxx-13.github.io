@@ -16,58 +16,15 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   // Gradio 4.x принимает base64 dataURL строкой напрямую
   var imageData = page.dataUrl; // "data:image/jpeg;base64,..."
 
-  // session_hash нужен Gradio 4.x для идентификации сессии
-  var sessionHash = Math.random().toString(36).slice(2, 10);
-
-  var response;
+  var json;
   try {
-    // Gradio 4.x: /run/predict с fn_index и session_hash
-    // Gradio 3.x: /api/predict (пробуем как фоллбэк ниже)
-    response = await fetch(SPACE_URL + '/run/predict', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        data: [imageData],
-        fn_index: 0,
-        session_hash: sessionHash
-      })
-    });
-
-    // Если /run/predict вернул HTML (404/redirect) — пробуем /api/predict (Gradio 3.x)
-    var contentType = response.headers.get('content-type') || '';
-    if (!response.ok || contentType.includes('text/html')) {
-      response = await fetch(SPACE_URL + '/api/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: [imageData],
-          fn_index: 0
-        })
-      });
-    }
+    json = await gradioPredict(SPACE_URL, imageData);
   } catch (e) {
     throw new Error(
       'Нет связи с Gradio-сервером. ' +
-      'Проверь SPACE_URL в js/api.js и убедись, что Colab запущен. Детали: ' + e.message
+      'Проверь SPACE_URL в js/api.js и убедись, что Colab запущен.\nДетали: ' + e.message
     );
   }
-
-  if (!response.ok) {
-    var errText = await response.text().catch(function(){ return ''; });
-    throw new Error('Ошибка сервера ' + response.status + ': ' + errText.slice(0, 300));
-  }
-
-  var contentTypeFinal = response.headers.get('content-type') || '';
-  if (contentTypeFinal.includes('text/html')) {
-    throw new Error(
-      'Сервер вернул HTML вместо JSON. Возможные причины:\n' +
-      '1. SPACE_URL устарел — перезапусти Colab и обнови URL в js/api.js\n' +
-      '2. Colab-сессия завершилась\n' +
-      '3. Gradio ещё не загрузился (подожди 30 сек и повтори)'
-    );
-  }
-
-  var json = await response.json();
 
   // Gradio возвращает: { data: ["текст"] } или { data: [{ corrected: "текст" }] }
   var result = json.data && json.data[0];
@@ -81,6 +38,63 @@ async function runHuggingFaceOCR(docId, pageIdx) {
 
   setLoadingMsg('Текст получен', 'Обрабатываем результат…');
   return textToWordObjects(text);
+}
+
+// ── GRADIO API (поддержка v3 / v4 / v5) ───────────────
+async function gradioPredict(baseUrl, imageData) {
+  // ── Gradio 5.x: POST /call/predict → event_id, затем GET SSE ──
+  var r5 = await fetch(baseUrl + '/call/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [imageData] })
+  });
+
+  if (r5.ok) {
+    var ct5 = r5.headers.get('content-type') || '';
+    if (ct5.includes('application/json')) {
+      var j5 = await r5.json();
+      var eventId = j5.event_id;
+      if (eventId) {
+        // Читаем SSE-стрим до process_completed
+        var sseResp = await fetch(baseUrl + '/call/predict/' + eventId);
+        var sseText = await sseResp.text();
+        // SSE: ищем последнюю строку data: {...}
+        var lines = sseText.split('\n');
+        for (var i = lines.length - 1; i >= 0; i--) {
+          if (lines[i].startsWith('data: ')) {
+            var payload = JSON.parse(lines[i].slice(6));
+            if (payload.msg === 'process_completed' && payload.output) {
+              return payload.output;   // { data: [...] }
+            }
+          }
+        }
+        throw new Error('Gradio 5.x: process_completed не найден в SSE-ответе');
+      }
+    }
+  }
+
+  // ── Gradio 4.x: POST /run/predict ──
+  var sessionHash = Math.random().toString(36).slice(2, 10);
+  var r4 = await fetch(baseUrl + '/run/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [imageData], fn_index: 0, session_hash: sessionHash })
+  });
+  if (r4.ok) {
+    var ct4 = r4.headers.get('content-type') || '';
+    if (ct4.includes('application/json')) return r4.json();
+  }
+
+  // ── Gradio 3.x: POST /api/predict ──
+  var r3 = await fetch(baseUrl + '/api/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [imageData], fn_index: 0 })
+  });
+  if (r3.ok) return r3.json();
+
+  var errText = await r3.text().catch(function(){ return String(r3.status); });
+  throw new Error('Все эндпоинты вернули ошибку. Последний ответ ' + r3.status + ': ' + errText.slice(0, 200));
 }
 
 // ── КОНВЕРТАЦИЯ ТЕКСТА В МАССИВ СЛОВ ──────────────────
