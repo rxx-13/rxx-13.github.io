@@ -4,7 +4,7 @@
 
 // После деплоя замени на свой URL:
 // https://ВАШ_НИК-scriptorium-ocr.hf.space
-var SPACE_URL = 'https://ВАШ_НИК-scriptorium-ocr.hf.space';
+var SPACE_URL = 'https://grumbly-unprorogued-vita.ngrok-free.dev';
 
 // ── ГЛАВНАЯ ФУНКЦИЯ OCR ────────────────────────────────
 // Отправляет страницу документа на Space, получает текст
