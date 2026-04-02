@@ -16,14 +16,35 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   // Gradio 4.x принимает base64 dataURL строкой напрямую
   var imageData = page.dataUrl; // "data:image/jpeg;base64,..."
 
+  // session_hash нужен Gradio 4.x для идентификации сессии
+  var sessionHash = Math.random().toString(36).slice(2, 10);
+
   var response;
   try {
-    // Gradio 4.x: /run/predict  (в 3.x было /api/predict — 404)
+    // Gradio 4.x: /run/predict с fn_index и session_hash
+    // Gradio 3.x: /api/predict (пробуем как фоллбэк ниже)
     response = await fetch(SPACE_URL + '/run/predict', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: [imageData] })
+      body: JSON.stringify({
+        data: [imageData],
+        fn_index: 0,
+        session_hash: sessionHash
+      })
     });
+
+    // Если /run/predict вернул HTML (404/redirect) — пробуем /api/predict (Gradio 3.x)
+    var contentType = response.headers.get('content-type') || '';
+    if (!response.ok || contentType.includes('text/html')) {
+      response = await fetch(SPACE_URL + '/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: [imageData],
+          fn_index: 0
+        })
+      });
+    }
   } catch (e) {
     throw new Error(
       'Нет связи с Gradio-сервером. ' +
@@ -34,6 +55,16 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   if (!response.ok) {
     var errText = await response.text().catch(function(){ return ''; });
     throw new Error('Ошибка сервера ' + response.status + ': ' + errText.slice(0, 300));
+  }
+
+  var contentTypeFinal = response.headers.get('content-type') || '';
+  if (contentTypeFinal.includes('text/html')) {
+    throw new Error(
+      'Сервер вернул HTML вместо JSON. Возможные причины:\n' +
+      '1. SPACE_URL устарел — перезапусти Colab и обнови URL в js/api.js\n' +
+      '2. Colab-сессия завершилась\n' +
+      '3. Gradio ещё не загрузился (подожди 30 сек и повтори)'
+    );
   }
 
   var json = await response.json();
