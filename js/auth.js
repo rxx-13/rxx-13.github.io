@@ -2,13 +2,21 @@
 //  auth.js — Авторизация, навигация, toast
 // ════════════════════════════════════════════════════════
 
+// ── СОСТОЯНИЕ СЕССИИ ──────────────────────────────────
+window._loggedIn = false;
+window._currentUser = '';
+
 // ── НАВИГАЦИЯ ─────────────────────────────────────────
+// Совместимость со старыми вызовами goTo('dashboard') / goTo('editor')
 function goTo(id) {
-  document.querySelectorAll('.screen').forEach(function(s) {
-    s.classList.remove('active');
-  });
-  document.getElementById('screen-' + id).classList.add('active');
-  if (id === 'dashboard') currentDocId = null;
+  var map = { dashboard: 'home', editor: 'ocr', auth: 'login' };
+  navigate(map[id] || id);
+}
+
+function logout() {
+  window._loggedIn = false;
+  window._currentUser = '';
+  navigate('login');
 }
 
 function switchTab(tab) {
@@ -99,12 +107,16 @@ function loginAsGuest() {
 
 // ── ЗАВЕРШЕНИЕ ВХОДА ───────────────────────────────────
 function finishLogin(displayName) {
+  window._loggedIn = true;
+  window._currentUser = displayName;
+
+  var initial = displayName.charAt(0).toUpperCase();
   document.querySelectorAll('.nav-avatar').forEach(function(a) {
-    a.textContent = displayName.charAt(0).toUpperCase();
+    a.textContent = initial;
   });
   var sub = document.getElementById('dashSubtitle');
   if (sub) sub.textContent = 'Добро пожаловать, ' + displayName + '!';
-  goTo('dashboard');
+  navigate('home');
 }
 
 // ── ИНИЦИАЛИЗАЦИЯ КНОПОК ──────────────────────────────
