@@ -31,7 +31,7 @@ Qwen2.5-VL-3B (GPU T4)
 
 **Фронтенд** — чистый HTML/CSS/JS без фреймворков, хостится на GitHub Pages.
 
-**Бэкенд** — Python-скрипт запускается в Google Colab, пробрасывается наружу через ngrok. Никаких затрат на сервер.
+**Бэкенд** — Python-скрипт запускается в Google Colab, пробрасывается наружу через ngrok. Никаких затрат на сервер. https://colab.research.google.com/drive/17T_0Am4f844HeFjyFIJEl8Br-UM4IFt5
 
 ## Структура файлов
 
@@ -59,7 +59,7 @@ scriptorium/          ← фронтенд (GitHub Pages)
 |------|-----------|-----------|
 | `colab/server.py` | GitHub (этот репо) | Да — сюда вносятся правки |
 | `colab/scriptorium_colab.ipynb` | GitHub (этот репо) | Редко — только при смене модели или зависимостей |
-| Рабочий ноутбук в Colab | Google Colab | Нет — ячейки 1–3 статичны, ячейка 4 только скачивает `server.py` |
+| [Рабочий ноутбук в Colab](https://colab.research.google.com/drive/17T_0Am4f844HeFjyFIJEl8Br-UM4IFt5) | Google Colab | Нет — ячейки 1–3 статичны, ячейка 4 только скачивает `server.py` |
 
 **Workflow при изменении логики сервера:**
 ```
