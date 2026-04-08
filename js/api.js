@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════════════
-//  api.js — OCR через Gradio (Qwen2.5-VL в Colab)
+//  api.js — OCR через Flask-сервер (Qwen2.5-VL в Colab)
 // ════════════════════════════════════════════════════════
 
-// Замени на актуальный URL из Colab (истекает ~72 ч):
+// Вставь сюда URL из вывода ячейки 4 в Colab (ngrok-ссылка):
 var SPACE_URL = 'https://77558cb0a579ef9633.gradio.live';
 
 // ── ГЛАВНАЯ ФУНКЦИЯ OCR ────────────────────────────────
@@ -11,14 +11,11 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   var doc  = uploadedDocs[docId];
   var page = doc.pages[pageIdx];
 
-  setLoadingMsg('Отправка на сервер…', 'Подключение к Gradio');
-
-  // Gradio 4.x принимает base64 dataURL строкой напрямую
-  var imageData = page.dataUrl; // "data:image/jpeg;base64,..."
+  setLoadingMsg('Отправка на сервер…', 'Подключение к Colab');
 
   var json;
   try {
-    json = await gradioPredict(SPACE_URL, imageData);
+    json = await callServer(SPACE_URL, page.dataUrl);
   } catch (e) {
     throw new Error(
       'Нет связи с сервером. ' +
@@ -26,22 +23,18 @@ async function runHuggingFaceOCR(docId, pageIdx) {
     );
   }
 
-  // Gradio возвращает: { data: ["текст"] } или { data: [{ corrected: "текст" }] }
-  var result = json.data && json.data[0];
-  if (!result) throw new Error('Пустой ответ от сервера');
-
-  var text = (typeof result === 'string')
-    ? result
-    : (result.corrected || result.text || JSON.stringify(result));
-
-  if (!text || !text.trim()) throw new Error('Модель не распознала текст');
+  // Сервер возвращает: { corrected: "текст" }
+  var text = (json.corrected || json.text || '').trim();
+  if (!text) throw new Error('Модель не распознала текст');
 
   setLoadingMsg('Текст получен', 'Обрабатываем результат…');
   return textToWordObjects(text);
 }
 
-// ── FLASK API (POST /predict) ──────────────────────────
-async function gradioPredict(baseUrl, imageData) {
+// ── ЗАПРОС К СЕРВЕРУ ──────────────────────────────────
+// POST /predict  →  { image: "data:image/jpeg;base64,..." }
+// ответ:          { corrected: "текст" }
+async function callServer(baseUrl, imageData) {
   var resp = await fetch(baseUrl + '/predict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -49,12 +42,11 @@ async function gradioPredict(baseUrl, imageData) {
   });
 
   if (!resp.ok) {
-    throw new Error('Сервер вернул ' + resp.status + '. Убедись что Colab запущен.');
+    var body = await resp.text().catch(function(){ return ''; });
+    throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 200));
   }
 
-  var json = await resp.json();
-  // Flask возвращает { corrected: "текст" } напрямую
-  return { data: [json] };
+  return resp.json();
 }
 
 // ── КОНВЕРТАЦИЯ ТЕКСТА В МАССИВ СЛОВ ──────────────────
@@ -71,9 +63,9 @@ function textToWordObjects(text) {
     lineWords.forEach(function(word, wordIdx) {
       words.push({
         word:       word,
-        confidence: 80,    // Qwen не даёт confidence per-word — ставим 80%
+        confidence: 80,
         source:     'ocr',
-        bbox:       null,  // координаты недоступны без детектора слов
+        bbox:       null,
         lineBreak:  (wordIdx === lineWords.length - 1) && !isLastLine
       });
     });
