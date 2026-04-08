@@ -47,8 +47,8 @@ scriptorium/          ← фронтенд (GitHub Pages)
 │   ├── editor.js     ← редактор и viewport
 │   └── router.js     ← URL-маршрутизация (History API)
 └── colab/
-    ├── server.py     ← динамика: логика OCR-сервера (Flask + ngrok)
-    └── setup.py      ← справочник: статичные ячейки ноутбука (только для чтения)
+    ├── server.py                 ← динамика: логика OCR-сервера (Flask + ngrok)
+    └── scriptorium_colab.ipynb   ← статика: установка библиотек и загрузка модели
 ```
 
 ### Про разделение кода Colab
@@ -58,8 +58,8 @@ scriptorium/          ← фронтенд (GitHub Pages)
 | Файл | Где живёт | Меняется? |
 |------|-----------|-----------|
 | `colab/server.py` | GitHub (этот репо) | Да — сюда вносятся правки |
-| `colab/setup.py` | GitHub (этот репо) | Редко — только при смене модели или зависимостей |
-| `scriptorium_colab.ipynb` | Google Colab | Нет — ячейки 1–3 статичны, ячейка 4 только скачивает `server.py` |
+| `colab/scriptorium_colab.ipynb` | GitHub (этот репо) | Редко — только при смене модели или зависимостей |
+| Рабочий ноутбук в Colab | Google Colab | Нет — ячейки 1–3 статичны, ячейка 4 только скачивает `server.py` |
 
 **Workflow при изменении логики сервера:**
 ```
