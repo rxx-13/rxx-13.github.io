@@ -71,8 +71,8 @@ function handleFileInputChange(e) {
 
 function processFiles(files) {
   files.filter(function(f) {
-    if (!ACCEPTED.includes(f.type)) { showToast('⚠️ Формат не поддерживается: ' + f.name); return false; }
-    if (f.size > MAX_MB * 1024 * 1024) { showToast('⚠️ Файл слишком большой: ' + f.name); return false; }
+    if (!ACCEPTED.includes(f.type)) { showToast('Формат не поддерживается: ' + f.name); return false; }
+    if (f.size > MAX_MB * 1024 * 1024) { showToast('Файл слишком большой: ' + f.name); return false; }
     return true;
   }).forEach(addFileCard);
 }
@@ -90,7 +90,7 @@ function addFileCard(file) {
   card.className = 'doc-card';
   card.id = id;
   card.innerHTML =
-    '<div class="doc-thumb" id="thumb-' + id + '">' + (isPdf ? '📜' : '🖼️') +
+    '<div class="doc-thumb" id="thumb-' + id + '">' + (isPdf ? 'PDF' : ' ') +
     '<div class="doc-status-badge status-processing" id="badge-' + id + '">Загрузка…</div></div>' +
     '<div class="doc-info"><div class="doc-name" title="' + file.name + '">' + file.name + '</div>' +
     '<div class="doc-meta">' + ext + ' · ' + sizeMB + ' МБ</div>' +
@@ -133,7 +133,7 @@ function animateCard(id, file) {
           card.onclick = (function(i){ return function(){ openEditor(i); }; })(id);
           card.style.cursor = 'pointer';
         }
-        showToast('📄 ' + file.name.slice(0, 24) + ' — нажмите для распознавания');
+        showToast(file.name.slice(0, 24) + ' — нажмите для распознавания');
         updateStats();
         renderBatchQueue();
       }
@@ -180,9 +180,9 @@ function animateCard(id, file) {
 // ── АРХИВ ──────────────────────────────────────────────
 function saveToArchive() {
   var doc = uploadedDocs[currentDocId];
-  if (!doc) { showToast('⚠️ Нет открытого документа'); return; }
+  if (!doc) { showToast('Нет открытого документа'); return; }
   var words = doc.pageWords ? doc.pageWords.filter(Boolean) : [];
-  if (!words.length) { showToast('⚠️ Сначала распознайте документ'); return; }
+  if (!words.length) { showToast('Сначала распознайте документ'); return; }
 
   var fullText = words.map(function(pw) {
     return pw.map(function(w){ return w.word; }).join(' ');
@@ -192,8 +192,8 @@ function saveToArchive() {
   var item = { docId: currentDocId, name: doc.name, date: new Date().toLocaleString('ru-RU'),
                pages: words.length, text: fullText, pageWords: doc.pageWords };
 
-  if (existing >= 0) { archiveItems[existing] = item; showToast('🗃️ Архив обновлён: ' + doc.name); }
-  else               { archiveItems.unshift(item);    showToast('✅ Сохранено в архив: ' + doc.name); }
+  if (existing >= 0) { archiveItems[existing] = item; showToast('Архив обновлён: ' + doc.name); }
+  else               { archiveItems.unshift(item);    showToast('Сохранено в архив: ' + doc.name); }
   updateStats();
 }
 
@@ -209,7 +209,7 @@ function renderArchive() {
     var row = document.createElement('div');
     row.className = 'doc-list-item'; row.style.cursor = 'default';
     row.innerHTML =
-      '<div class="doc-list-icon">📜</div>' +
+      '<div class="doc-list-icon" style="font-size:12px;font-weight:600;color:var(--muted);">TXT</div>' +
       '<div class="doc-list-info"><div class="doc-list-name">' + item.name + '</div>' +
       '<div class="doc-list-meta">' + item.pages + ' стр. · ' + item.date + '</div></div>' +
       '<div style="display:flex;gap:8px;">' +
@@ -228,21 +228,21 @@ function archiveDownloadTxt(docId) {
   var a    = document.createElement('a');
   a.href = url; a.download = item.name.replace(/\.[^.]+$/, '') + '_распознано.txt'; a.click();
   addExportHistory(item.name, 'TXT', url);
-  showToast('✅ Скачан TXT из архива');
+  showToast('Скачан TXT из архива');
 }
 
 function archiveDelete(docId) {
   archiveItems = archiveItems.filter(function(a){ return a.docId !== docId; });
-  renderArchive(); updateStats(); showToast('🗑️ Удалено из архива');
+  renderArchive(); updateStats(); showToast('Удалено из архива');
 }
 
 function archiveExportAll() {
-  if (!archiveItems.length) { showToast('⚠️ Архив пуст'); return; }
+  if (!archiveItems.length) { showToast('Архив пуст'); return; }
   archiveItems.forEach(function(item){ archiveDownloadTxt(item.docId); });
 }
 
 // ── ИСТОРИЯ ЭКСПОРТА ────────────────────────────────────
-var exportIcons = { TXT: '📄', DOCX: '📝', PDF: '🔴' };
+var exportIcons = { TXT: 'TXT', DOCX: 'DOC', PDF: 'PDF' };
 
 function addExportHistory(name, format, url) {
   exportHistory.unshift({ id: Date.now(), name: name, format: format,
@@ -260,7 +260,7 @@ function renderExportHistory() {
     var row = document.createElement('div');
     row.className = 'doc-list-item';
     row.innerHTML =
-      '<div class="doc-list-icon">' + (exportIcons[item.format] || '📄') + '</div>' +
+      '<div class="doc-list-icon" style="font-size:12px;font-weight:600;color:var(--muted);">' + (exportIcons[item.format] || 'FILE') + '</div>' +
       '<div class="doc-list-info"><div class="doc-list-name">' + item.name + '</div>' +
       '<div class="doc-list-meta">' + item.format + ' · ' + item.date + '</div></div>' +
       '<a class="doc-list-action" href="' + item.url + '" download>↓ Скачать</a>';
@@ -295,18 +295,18 @@ function renderBatchQueue() {
 
     var statusText, statusColor;
     if (isSkipped)      { statusText = '⊘ Пропущен';   statusColor = 'var(--muted)'; }
-    else if (isRunning) { statusText = '🔄 Обработка…'; statusColor = 'var(--warning)'; }
+    else if (isRunning) { statusText = 'Обработка…';   statusColor = 'var(--warning)'; }
     else if (donePages > 0 && donePages >= (doc.pages ? doc.pages.length : 1))
-                        { statusText = '✅ Готово — ' + donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--success)'; }
+                        { statusText = 'Готово — ' + donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--success)'; }
     else if (donePages > 0)
-                        { statusText = '⏳ ' + donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--warning)'; }
-    else                { statusText = '⏳ Ожидает';    statusColor = 'var(--muted)'; }
+                        { statusText = donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--warning)'; }
+    else                { statusText = 'Ожидает';      statusColor = 'var(--muted)'; }
 
     var row = document.createElement('div');
     row.id = 'batch-row-' + id;
     row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);' + (isSkipped ? 'opacity:0.45;' : '');
     row.innerHTML =
-      '<div style="font-size:20px;flex-shrink:0;">' + (doc.type === 'application/pdf' ? '📜' : '🖼️') + '</div>' +
+      '<div style="font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;">' + (doc.type === 'application/pdf' ? 'PDF' : 'IMG') + '</div>' +
       '<div style="flex:1;min-width:0;">' +
       '<div style="font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + doc.name + '</div>' +
       '<div style="font-size:11px;color:' + statusColor + ';margin-top:2px;" id="batch-status-' + id + '">' + statusText + '</div>' +
@@ -321,7 +321,7 @@ function renderBatchQueue() {
 }
 
 function batchSkipDoc(id) { batchSkipped.add(id); renderBatchQueue(); }
-function cancelBatch() { if (batchRunning) { batchCancelled = true; showToast('🛑 Отмена…', 2000); } }
+function cancelBatch() { if (batchRunning) { batchCancelled = true; showToast('Отмена…', 2000); } }
 
 async function runBatchAll() {
   var ids = Object.keys(uploadedDocs);
@@ -330,7 +330,7 @@ async function runBatchAll() {
   batchRunning = true; batchCancelled = false;
   var runBtn = document.getElementById('batchRunBtn');
   var cancelBtn = document.getElementById('batchCancelBtn');
-  if (runBtn)    { runBtn.disabled = true; runBtn.textContent = '⏳ Обработка…'; }
+  if (runBtn)    { runBtn.disabled = true; runBtn.textContent = 'Обработка…'; }
   if (cancelBtn) cancelBtn.style.display = 'inline-flex';
 
   var processed = 0;
@@ -342,7 +342,7 @@ async function runBatchAll() {
     if (batchSkipped.has(id)) continue;
 
     var statusEl = document.getElementById('batch-status-' + id);
-    if (statusEl) { statusEl.textContent = '🔄 Обработка…'; statusEl.style.color = 'var(--warning)'; }
+    if (statusEl) { statusEl.textContent = 'Обработка…'; statusEl.style.color = 'var(--warning)'; }
     currentDocId = id;
 
     try {
@@ -365,26 +365,26 @@ async function runBatchAll() {
       }
 
       if (!batchCancelled && !batchSkipped.has(id)) {
-        if (statusEl) { statusEl.textContent = '✅ Готово — ' + n + ' стр.'; statusEl.style.color = 'var(--success)'; }
+        if (statusEl) { statusEl.textContent = 'Готово — ' + n + ' стр.'; statusEl.style.color = 'var(--success)'; }
         processed++;
       }
     } catch(e) {
-      if (statusEl) { statusEl.textContent = '❌ ' + e.message; statusEl.style.color = 'var(--error)'; }
+      if (statusEl) { statusEl.textContent = e.message; statusEl.style.color = 'var(--error)'; }
       pipelineHide();
     }
   }
 
   batchRunning = false; batchCancelled = false; batchSkipped.clear();
-  if (runBtn)    { runBtn.disabled = false; runBtn.textContent = '⚡ Запустить все'; }
+  if (runBtn)    { runBtn.disabled = false; runBtn.textContent = 'Запустить все'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
   updateStats(); renderBatchQueue();
-  showToast('✅ Пакетная обработка завершена — ' + processed + ' документов');
+  showToast('Пакетная обработка завершена — ' + processed + ' документов');
 }
 
 // ── ЭКСПОРТ TXT ────────────────────────────────────────
 function exportTxt() {
   var words = Array.from(document.querySelectorAll('.tw'));
-  if (!words.length) { showToast('⚠️ Нет текста'); return; }
+  if (!words.length) { showToast('Нет текста'); return; }
   var docName = currentDocId && uploadedDocs[currentDocId]
     ? uploadedDocs[currentDocId].name.replace(/\.[^.]+$/, '') : 'документ';
   var lines = [], line = [];
@@ -399,13 +399,13 @@ function exportTxt() {
   var a = document.createElement('a');
   a.href = url; a.download = docName + '_распознано.txt'; a.click();
   addExportHistory(docName + '.txt', 'TXT', url);
-  showToast('✅ Скачан TXT');
+  showToast('Скачан TXT');
 }
 
 // ── ЭКСПОРТ DOCX ───────────────────────────────────────
 function exportDocx() {
   var words = Array.from(document.querySelectorAll('.tw'));
-  if (!words.length) { showToast('⚠️ Нет текста'); return; }
+  if (!words.length) { showToast('Нет текста'); return; }
   var docName = currentDocId && uploadedDocs[currentDocId]
     ? uploadedDocs[currentDocId].name.replace(/\.[^.]+$/, '') : 'документ';
 

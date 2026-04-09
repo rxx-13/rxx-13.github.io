@@ -5,15 +5,12 @@
 
 // ── Таблица маршрутов ─────────────────────────────────
 var ROUTES = {
-  '/':         { screen: 'landing' },
-  '/login':    { screen: 'auth' },
-  '/register': { screen: 'auth' },
-  '/home':     { screen: 'dashboard', panel: 'docs' },
-  '/archive':  { screen: 'dashboard', panel: 'archive' },
-  '/export':   { screen: 'dashboard', panel: 'export' },
-  '/batch':    { screen: 'dashboard', panel: 'batch' },
-  '/ocr':      { screen: 'editor' },
-  '/profile':  { screen: 'profile' }
+  '/':        { screen: 'landing' },
+  '/home':    { screen: 'dashboard', panel: 'docs' },
+  '/archive': { screen: 'dashboard', panel: 'archive' },
+  '/export':  { screen: 'dashboard', panel: 'export' },
+  '/batch':   { screen: 'dashboard', panel: 'batch' },
+  '/ocr':     { screen: 'editor' }
 };
 
 var PANEL_PATHS = {
@@ -22,11 +19,6 @@ var PANEL_PATHS = {
   export:  '/export',
   batch:   '/batch'
 };
-
-// Авторизация не требуется — гостевой режим по умолчанию
-window._isLoggedIn      = true;
-window._pendingRoute    = null;
-window._currentUserName = 'Пользователь';
 
 // ── handleRoute — читает URL, показывает нужный экран ─
 function handleRoute() {
@@ -47,32 +39,6 @@ function _showScreen(id) {
   var t = document.getElementById('screen-' + id);
   if (t) t.classList.add('active');
   if (id === 'dashboard' && typeof currentDocId !== 'undefined') currentDocId = null;
-  if (id === 'profile') _renderProfile();
-}
-
-// ── Рендер страницы профиля ───────────────────────────
-function _renderProfile() {
-  var name = window._currentUserName || 'Гость';
-  var nameEl = document.getElementById('profileName');
-  var initEl = document.getElementById('profileInit');
-  var docsEl = document.getElementById('profileDocs');
-  var archEl = document.getElementById('profileArchive');
-  var pagesEl = document.getElementById('profilePages');
-  if (nameEl)  nameEl.textContent  = name;
-  if (initEl)  initEl.textContent  = name.charAt(0).toUpperCase();
-  var docs  = Object.keys(uploadedDocs  || {}).length;
-  var arch  = (archiveItems || []).length;
-  var pages = 0;
-  Object.keys(uploadedDocs || {}).forEach(function(id) {
-    var d = uploadedDocs[id];
-    if (d && d.pageWords) d.pageWords.forEach(function(pw){ if (pw) pages++; });
-  });
-  if (docsEl)  docsEl.textContent  = docs;
-  if (archEl)  archEl.textContent  = arch;
-  if (pagesEl) pagesEl.textContent = pages;
-  document.querySelectorAll('.nav-avatar').forEach(function(a) {
-    a.textContent = name.charAt(0).toUpperCase();
-  });
 }
 
 // ── popstate — кнопки «Назад» / «Вперёд» в браузере ──

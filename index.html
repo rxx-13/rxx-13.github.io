@@ -27,15 +27,13 @@
       <a href="#tools" class="nav-link">Инструменты</a>
     </div>
     <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn" onclick="goTo('auth'); switchTab('login')">Войти</button>
-    <button type="button" class="nav-btn primary" onclick="goTo('auth'); switchTab('register')">Регистрация</button>
   </nav>
 
   <section class="hero">
     <div class="hero-content">
       <h1 class="hero-title">Расшифровка рукописей<br>с помощью ИИ</h1>
       <p class="hero-subtitle">Загрузите скан рукописного документа — получите точный цифровой текст за секунды. OCR на базе Qwen2.5-VL.</p>
-      <button type="button" class="hero-cta" onclick="goTo('auth')">Начать бесплатно →</button>
+      <button type="button" class="hero-cta" onclick="goTo('dashboard')">Начать бесплатно →</button>
       <div class="hero-formats">Поддержка JPG · PNG · PDF · TIFF</div>
     </div>
   </section>
@@ -46,35 +44,20 @@
       <p class="tools-subtitle">Всё для работы с рукописными документами</p>
     </div>
     <div class="tools-grid">
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">📄</div>
+      <div class="tool-card" onclick="goTo('dashboard')">
+        <div class="tool-card-icon">&#9998;</div>
         <div class="tool-card-name">Распознавание</div>
         <div class="tool-card-desc">OCR рукописного текста с коррекцией по базе почерков</div>
       </div>
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">⚡</div>
+      <div class="tool-card" onclick="goTo('dashboard')">
+        <div class="tool-card-icon">&#9776;</div>
         <div class="tool-card-name">Пакетная обработка</div>
         <div class="tool-card-desc">Распознайте десятки документов за один раз</div>
       </div>
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">📝</div>
-        <div class="tool-card-name">Экспорт в Word</div>
+      <div class="tool-card" onclick="goTo('dashboard')">
+        <div class="tool-card-icon">&#8595;</div>
+        <div class="tool-card-name">Экспорт</div>
         <div class="tool-card-desc">Скачайте результат в DOCX, PDF или TXT</div>
-      </div>
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">🔤</div>
-        <div class="tool-card-name">База сокращений</div>
-        <div class="tool-card-desc">Автоматическая расшифровка устаревших сокращений</div>
-      </div>
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">✍️</div>
-        <div class="tool-card-name">База почерков</div>
-        <div class="tool-card-desc">Коррекция по словарю рукописных форм букв</div>
-      </div>
-      <div class="tool-card" onclick="goTo('auth')">
-        <div class="tool-card-icon">🗃️</div>
-        <div class="tool-card-name">Архив</div>
-        <div class="tool-card-desc">Храните и экспортируйте все расшифрованные документы</div>
       </div>
     </div>
   </section>
@@ -86,99 +69,25 @@
   </footer>
 </div>
 
-<!-- ═══════ AUTH ═══════ -->
-<div id="screen-auth" class="screen">
-  <div class="auth-bg"></div>
-  <div class="auth-container">
-    <div class="auth-logo">
-      <span class="logo-word">Scriptorium</span>
-      <span class="logo-sub">Умная расшифровка рукописей</span>
-    </div>
-    <div class="auth-card">
-      <div class="auth-tabs">
-        <button type="button" id="btnTabLogin" class="auth-tab active" onclick="switchTab('login')">Войти</button>
-        <button type="button" id="btnTabRegister" class="auth-tab" onclick="switchTab('register')">Регистрация</button>
-      </div>
-      <div id="form-login" class="auth-form active">
-        <button type="button" id="btnGuestLogin" class="oauth-btn"
-          style="margin-bottom:16px;border:1.5px solid var(--border);font-size:15px;">
-          <span style="font-size:20px;">👤</span><strong>Войти как гость</strong>
-        </button>
-        <div class="auth-divider" style="margin-bottom:16px;">или войдите с email</div>
-        <div class="field">
-          <label>Электронная почта</label>
-          <input type="email" id="loginEmail" placeholder="ivan@example.ru" autocomplete="email">
-          <div class="field-error" id="loginEmailErr"></div>
-        </div>
-        <div class="field">
-          <label>Пароль</label>
-          <input type="password" id="loginPassword" placeholder="Любой пароль" autocomplete="current-password">
-          <div class="field-error" id="loginPasswordErr"></div>
-        </div>
-        <div id="loginFormErr" class="form-error"></div>
-        <button type="button" class="auth-btn" onclick="submitLogin()">Войти в систему</button>
-      </div>
-      <div id="form-register" class="auth-form">
-        <div class="field">
-          <label>Имя и фамилия</label>
-          <input type="text" id="regName" placeholder="Иван Иванов" autocomplete="name">
-          <div class="field-error" id="regNameErr"></div>
-        </div>
-        <div class="field">
-          <label>Электронная почта</label>
-          <input type="email" id="regEmail" placeholder="ivan@example.ru" autocomplete="email">
-          <div class="field-error" id="regEmailErr"></div>
-        </div>
-        <div class="field">
-          <label>Пароль</label>
-          <input type="password" id="regPassword" placeholder="Минимум 8 символов" autocomplete="new-password">
-          <div class="field-error" id="regPasswordErr"></div>
-        </div>
-        <div class="field">
-          <label>Подтверждение пароля</label>
-          <input type="password" id="regPassword2" placeholder="Повторите пароль" autocomplete="new-password">
-          <div class="field-error" id="regPassword2Err"></div>
-        </div>
-        <div id="regFormErr" class="form-error"></div>
-        <button type="button" class="auth-btn" onclick="submitRegister()">Создать аккаунт</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════ DASHBOARD ═══════ -->
 <div id="screen-dashboard" class="screen">
   <nav class="topnav">
     <div class="nav-logo" onclick="goTo('landing')" style="cursor:pointer;">Scriptorium</div>
     <div class="nav-spacer"></div>
     <button type="button" class="nav-btn primary" onclick="document.getElementById('fileInput').click()">+ Загрузить</button>
-    <button type="button" class="nav-btn" onclick="goTo('auth')">Выйти</button>
-    <div class="nav-avatar" onclick="goTo('profile')" style="cursor:pointer;">П</div>
   </nav>
   <div class="dashboard-body">
-    <aside class="dash-sidebar">
-      <div class="dash-sidebar-title">Меню</div>
-      <div class="sidebar-item active" id="nav-docs" onclick="switchDashPanel('docs')">
-        <span class="si-icon">📁</span> Мои документы
-      </div>
-      <div class="sidebar-item" id="nav-archive" onclick="switchDashPanel('archive')">
-        <span class="si-icon">🗃️</span> Архив
-      </div>
-      <div class="sidebar-item" id="nav-export" onclick="switchDashPanel('export')">
-        <span class="si-icon">📤</span> История экспорта
-      </div>
-      <div class="dash-sidebar-title">Инструменты</div>
-      <div class="sidebar-item" onclick="document.getElementById('fileInput').click()">
-        <span class="si-icon">⬆️</span> Загрузить файл
-      </div>
-      <div class="sidebar-item" id="nav-batch" onclick="switchDashPanel('batch')">
-        <span class="si-icon">⚡</span> Пакетная обработка
-      </div>
-    </aside>
     <main class="dash-main">
       <input type="file" id="fileInput" multiple
         accept=".jpg,.jpeg,.png,.pdf,.tiff,.tif"
         style="display:none" onchange="handleFileInputChange(event)">
+
+      <div class="bottom-nav" id="dashNav">
+        <div class="bottom-nav-item active" id="nav-docs" onclick="switchDashPanel('docs')">Документы</div>
+        <div class="bottom-nav-item" id="nav-archive" onclick="switchDashPanel('archive')">Архив</div>
+        <div class="bottom-nav-item" id="nav-export" onclick="switchDashPanel('export')">Экспорт</div>
+        <div class="bottom-nav-item" id="nav-batch" onclick="switchDashPanel('batch')">Пакетная</div>
+      </div>
 
       <!-- Мои документы -->
       <div id="panel-docs" class="dash-panel">
@@ -195,7 +104,7 @@
           <div class="stat-card"><div class="stat-value" id="statPages">0</div><div class="stat-label">Страниц расшифровано</div></div>
         </div>
         <div class="upload-zone" id="uploadZone">
-          <div class="upload-icon">📄</div>
+          <div class="upload-icon">&#8679;</div>
           <div class="upload-title">Перетащите файл сюда</div>
           <div class="upload-formats">JPG · PNG · PDF · TIFF</div>
           <div class="upload-btn" id="uploadBtnLabel" onclick="document.getElementById('fileInput').click()">Выбрать файл</div>
@@ -209,10 +118,9 @@
       <div id="panel-archive" class="dash-panel" style="display:none;">
         <div class="dash-header">
           <div><div class="dash-title">Архив</div><div class="dash-subtitle">Расшифрованные документы</div></div>
-          <button type="button" class="nav-btn primary" onclick="archiveExportAll()">📤 Экспортировать все</button>
+          <button type="button" class="nav-btn primary" onclick="archiveExportAll()">Экспортировать все</button>
         </div>
         <div id="archiveEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;">
-          <div style="font-size:56px;opacity:0.15;">🗃️</div>
           <div style="font-size:15px;font-weight:500;color:var(--ink-light);">Архив пуст</div>
           <div style="font-size:13px;color:var(--muted);text-align:center;max-width:300px;line-height:1.6;">После распознавания нажмите «В архив» в редакторе</div>
         </div>
@@ -226,7 +134,6 @@
           <button type="button" class="nav-btn" onclick="clearExportHistory()">Очистить</button>
         </div>
         <div id="exportEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;">
-          <div style="font-size:56px;opacity:0.15;">📤</div>
           <div style="font-size:15px;font-weight:500;color:var(--ink-light);">История пуста</div>
         </div>
         <div class="doc-list" id="exportHistoryList"></div>
@@ -241,7 +148,7 @@
           <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
             <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);flex:1;">Очередь</span>
             <button type="button" class="nav-btn" onclick="document.getElementById('fileInput').click()" style="padding:6px 14px;font-size:11px;">+ Добавить</button>
-            <button type="button" class="nav-btn primary" id="batchRunBtn" onclick="runBatchAll()" style="padding:6px 14px;font-size:11px;" disabled>⚡ Запустить все</button>
+            <button type="button" class="nav-btn primary" id="batchRunBtn" onclick="runBatchAll()" style="padding:6px 14px;font-size:11px;" disabled>Запустить все</button>
             <button type="button" class="nav-btn" id="batchCancelBtn" onclick="cancelBatch()" style="padding:6px 14px;font-size:11px;display:none;border-color:var(--error);color:var(--error);">✕ Отменить</button>
           </div>
           <div id="batchQueueEmpty" style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">Загрузите файлы в «Мои документы»</div>
@@ -265,7 +172,7 @@
   <div class="editor-toolbar">
     <div class="toolbar-group">
       <button type="button" class="tool-btn primary" id="recognizeBtn" onclick="recognizeCurrentPage()"
-        style="border-radius:var(--radius) 0 0 var(--radius);">⚡ Распознать</button>
+        style="border-radius:var(--radius) 0 0 var(--radius);">Распознать</button>
       <button type="button" class="tool-btn" id="recognizeAllBtn" onclick="recognizeAllPages()"
         style="border-radius:0 var(--radius) var(--radius) 0;padding:0 11px;font-size:11px;">Весь документ</button>
     </div>
@@ -275,12 +182,12 @@
     <select id="langSelect" style="display:none;"><option value="auto" selected></option></select>
     <div class="toolbar-divider"></div>
     <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageHW" checked style="accent-color:var(--primary);"> ✍️ Почерки</label>
+      <input type="checkbox" id="stageHW" checked style="accent-color:var(--primary);"> Почерки</label>
     <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageAbbr" checked style="accent-color:var(--primary);"> 🔤 Сокращения</label>
+      <input type="checkbox" id="stageAbbr" checked style="accent-color:var(--primary);"> Сокращения</label>
     <div class="toolbar-divider"></div>
-    <button type="button" class="tool-btn" onclick="openExport()">📤 Экспорт</button>
-    <button type="button" class="tool-btn" onclick="saveToArchive()">🗃️ В архив</button>
+    <button type="button" class="tool-btn" onclick="openExport()">Экспорт</button>
+    <button type="button" class="tool-btn" onclick="saveToArchive()">В архив</button>
     <div class="confidence-group">
       <span class="confidence-label">Порог</span>
       <input type="range" class="confidence-slider" min="0" max="100" value="60" oninput="updateConfidence(this.value)">
@@ -381,7 +288,7 @@
       <div class="text-state" id="stateEmpty">
         <div class="ts-icon">✍️</div>
         <div class="ts-title">Текст ещё не распознан</div>
-        <div class="ts-sub">Нажмите <strong>⚡ Распознать</strong> для запуска</div>
+        <div class="ts-sub">Нажмите <strong>Распознать</strong> для запуска</div>
       </div>
       <div class="text-state" id="stateLoading" style="display:none;">
         <div class="proc-spinner"></div>
@@ -390,30 +297,6 @@
       </div>
       <div class="text-content" id="textContent" style="display:none;"></div>
     </div>
-  </div>
-</div>
-
-<!-- ═══════ PROFILE ═══════ -->
-<div id="screen-profile" class="screen">
-  <nav class="topnav">
-    <div class="nav-logo" onclick="goTo('dashboard')" style="cursor:pointer;">← Scriptorium</div>
-    <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn" onclick="goTo('auth')">Выйти</button>
-    <div class="nav-avatar" onclick="goTo('profile')" style="cursor:pointer;">И</div>
-  </nav>
-  <div style="max-width:480px;margin:60px auto;padding:0 24px;">
-    <div style="text-align:center;margin-bottom:40px;">
-      <div id="profileInit" style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;font-size:36px;font-family:'Inter',sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"></div>
-      <div id="profileName" style="font-size:22px;font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);margin-bottom:6px;"></div>
-      <div style="font-size:13px;color:var(--muted);">Текущая сессия</div>
-    </div>
-    <div class="stats-row" style="margin-bottom:40px;">
-      <div class="stat-card accent"><div class="stat-value" id="profileDocs">0</div><div class="stat-label">Документов</div></div>
-      <div class="stat-card"><div class="stat-value" id="profileArchive">0</div><div class="stat-label">В архиве</div></div>
-      <div class="stat-card"><div class="stat-value" id="profilePages">0</div><div class="stat-label">Страниц</div></div>
-    </div>
-    <button type="button" class="auth-btn" onclick="goTo('auth')"
-      style="background:var(--error);border-color:var(--error);">Выйти из системы</button>
   </div>
 </div>
 
