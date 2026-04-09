@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Scriptorium — Расшифровка рукописей</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script>
 // Загрузка PDF.js
@@ -24,7 +24,7 @@
   <div class="auth-container">
     <div class="auth-logo">
       <span class="logo-word">Scriptorium</span>
-      <span class="logo-sub">Расшифровка рукописных документов</span>
+      <span class="logo-sub">Умная расшифровка рукописей</span>
     </div>
     <div class="auth-card">
       <div class="auth-tabs">
@@ -33,7 +33,7 @@
       </div>
       <div id="form-login" class="auth-form active">
         <button type="button" id="btnGuestLogin" class="oauth-btn"
-          style="margin-bottom:16px;border:1.5px solid rgba(212,168,66,0.45);font-size:15px;">
+          style="margin-bottom:16px;border:1.5px solid var(--border);font-size:15px;">
           <span style="font-size:20px;">👤</span><strong>Войти как гость</strong>
         </button>
         <div class="auth-divider" style="margin-bottom:16px;">или войдите с email</div>
@@ -131,7 +131,7 @@
           <div class="upload-title">Перетащите файл сюда</div>
           <div class="upload-formats">JPG · PNG · PDF · TIFF</div>
           <div class="upload-btn" id="uploadBtnLabel" onclick="document.getElementById('fileInput').click()">Выбрать файл</div>
-          <div id="dropLabel" style="display:none;font-size:18px;margin-top:10px;color:var(--gold);font-weight:600;">Отпустите для загрузки</div>
+          <div id="dropLabel" style="display:none;font-size:18px;margin-top:10px;color:var(--primary);font-weight:600;">Отпустите для загрузки</div>
         </div>
         <div class="section-title">Последние документы</div>
         <div class="doc-grid" id="docGrid"></div>
@@ -174,7 +174,7 @@
             <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);flex:1;">Очередь</span>
             <button type="button" class="nav-btn" onclick="document.getElementById('fileInput').click()" style="padding:6px 14px;font-size:11px;">+ Добавить</button>
             <button type="button" class="nav-btn primary" id="batchRunBtn" onclick="runBatchAll()" style="padding:6px 14px;font-size:11px;" disabled>⚡ Запустить все</button>
-            <button type="button" class="nav-btn" id="batchCancelBtn" onclick="cancelBatch()" style="padding:6px 14px;font-size:11px;display:none;border-color:var(--rust);color:var(--rust);">✕ Отменить</button>
+            <button type="button" class="nav-btn" id="batchCancelBtn" onclick="cancelBatch()" style="padding:6px 14px;font-size:11px;display:none;border-color:var(--error);color:var(--error);">✕ Отменить</button>
           </div>
           <div id="batchQueueEmpty" style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">Загрузите файлы в «Мои документы»</div>
           <div id="batchQueue" style="display:none;"></div>
@@ -202,22 +202,22 @@
       <button type="button" class="tool-btn" id="recognizeAllBtn" onclick="recognizeAllPages()"
         style="border-radius:0 var(--radius) var(--radius) 0;padding:0 11px;font-size:11px;">Весь документ</button>
     </div>
-    <select id="engineSelect" style="height:32px;padding:0 10px;background:white;border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink-light);">
+    <select id="engineSelect" style="height:32px;padding:0 10px;background:white;border:1px solid var(--border);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-light);">
       <option value="hf">Qwen AI (HuggingFace)</option>
     </select>
     <select id="langSelect" style="display:none;"><option value="auto" selected></option></select>
     <div class="toolbar-divider"></div>
     <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageHW" checked style="accent-color:var(--navy);"> ✍️ Почерки</label>
+      <input type="checkbox" id="stageHW" checked style="accent-color:var(--primary);"> ✍️ Почерки</label>
     <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageAbbr" checked style="accent-color:var(--navy);"> 🔤 Сокращения</label>
+      <input type="checkbox" id="stageAbbr" checked style="accent-color:var(--primary);"> 🔤 Сокращения</label>
     <div class="toolbar-divider"></div>
     <button type="button" class="tool-btn" onclick="openExport()">📤 Экспорт</button>
     <button type="button" class="tool-btn" onclick="saveToArchive()">🗃️ В архив</button>
     <div class="confidence-group">
       <span class="confidence-label">Порог</span>
       <input type="range" class="confidence-slider" min="0" max="100" value="60" oninput="updateConfidence(this.value)">
-      <span id="confVal" style="font-size:11px;color:var(--muted);min-width:28px;font-family:'DM Mono',monospace">60%</span>
+      <span id="confVal" style="font-size:11px;color:var(--muted);min-width:28px;font-family:'JetBrains Mono',monospace">60%</span>
     </div>
   </div>
 
@@ -319,7 +319,7 @@
       <div class="text-state" id="stateLoading" style="display:none;">
         <div class="proc-spinner"></div>
         <div class="ts-title" id="loadingTitle">Запуск…</div>
-        <div class="ts-sub" id="loadingSubtitle" style="font-family:'DM Mono',monospace;font-size:11px;"></div>
+        <div class="ts-sub" id="loadingSubtitle" style="font-family:'JetBrains Mono',monospace;font-size:11px;"></div>
       </div>
       <div class="text-content" id="textContent" style="display:none;"></div>
     </div>
@@ -336,8 +336,8 @@
   </nav>
   <div style="max-width:480px;margin:60px auto;padding:0 24px;">
     <div style="text-align:center;margin-bottom:40px;">
-      <div id="profileInit" style="width:80px;height:80px;border-radius:50%;background:var(--navy);color:white;font-size:36px;font-family:'Playfair Display',serif;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"></div>
-      <div id="profileName" style="font-size:22px;font-family:'Playfair Display',serif;font-weight:700;color:var(--ink);margin-bottom:6px;"></div>
+      <div id="profileInit" style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;font-size:36px;font-family:'Inter',sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"></div>
+      <div id="profileName" style="font-size:22px;font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);margin-bottom:6px;"></div>
       <div style="font-size:13px;color:var(--muted);">Текущая сессия</div>
     </div>
     <div class="stats-row" style="margin-bottom:40px;">
@@ -346,7 +346,7 @@
       <div class="stat-card"><div class="stat-value" id="profilePages">0</div><div class="stat-label">Страниц</div></div>
     </div>
     <button type="button" class="auth-btn" onclick="goTo('auth')"
-      style="background:#b03a2e;border-color:#b03a2e;">Выйти из системы</button>
+      style="background:var(--error);border-color:var(--error);">Выйти из системы</button>
   </div>
 </div>
 

@@ -349,9 +349,9 @@ function drawSelRect(sel) {
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fillRect(0, 0, sc.width, sc.height);
   ctx.clearRect(sel.x, sel.y, sel.w, sel.h);
-  ctx.strokeStyle = '#d4a842'; ctx.lineWidth = 2; ctx.setLineDash([6, 3]);
+  ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 2; ctx.setLineDash([6, 3]);
   ctx.strokeRect(sel.x, sel.y, sel.w, sel.h);
-  ctx.fillStyle = '#d4a842';
+  ctx.fillStyle = '#7c3aed';
   [[sel.x,sel.y],[sel.x+sel.w,sel.y],[sel.x,sel.y+sel.h],[sel.x+sel.w,sel.y+sel.h]].forEach(function(pt){
     ctx.fillRect(pt[0]-4, pt[1]-4, 8, 8);
   });

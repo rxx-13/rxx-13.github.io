@@ -214,7 +214,7 @@ function renderArchive() {
       '<div class="doc-list-meta">' + item.pages + ' стр. · ' + item.date + '</div></div>' +
       '<div style="display:flex;gap:8px;">' +
       '<button type="button" class="doc-list-action" onclick="archiveDownloadTxt(\'' + item.docId + '\')">↓ TXT</button>' +
-      '<button type="button" class="doc-list-action" style="background:var(--rust);color:white;" ' +
+      '<button type="button" class="doc-list-action" style="background:var(--error);color:white;" ' +
         'onclick="archiveDelete(\'' + item.docId + '\')">✕</button></div>';
     list.appendChild(row);
   });
@@ -315,7 +315,7 @@ function renderBatchQueue() {
       '<button type="button" onclick="batchSkipDoc(\'' + id + '\')" ' +
         'style="width:26px;height:26px;flex-shrink:0;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:13px;color:var(--muted);">⊘</button>' +
       '<button type="button" onclick="openEditor(\'' + id + '\')" ' +
-        'style="padding:5px 12px;background:var(--navy);color:var(--parchment);border:none;border-radius:var(--radius);font-size:11px;cursor:pointer;flex-shrink:0;">Открыть</button>';
+        'style="padding:5px 12px;background:var(--primary);color:white;border:none;border-radius:var(--radius);font-size:11px;cursor:pointer;flex-shrink:0;">Открыть</button>';
     qEl.appendChild(row);
   });
 }
