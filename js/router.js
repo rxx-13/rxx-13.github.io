@@ -5,8 +5,8 @@
 
 // ── Таблица маршрутов ─────────────────────────────────
 var ROUTES = {
-  '/':        { screen: 'auth' },
-  '/login':   { screen: 'auth' },
+  '/':        { screen: 'dashboard', panel: 'docs' },
+  '/login':   { screen: 'dashboard', panel: 'docs' },
   '/home':    { screen: 'dashboard', panel: 'docs' },
   '/archive': { screen: 'dashboard', panel: 'archive' },
   '/export':  { screen: 'dashboard', panel: 'export' },
@@ -22,31 +22,15 @@ var PANEL_PATHS = {
   batch:   '/batch'
 };
 
-// Состояние авторизации (устанавливается из auth.js)
-window._isLoggedIn    = false;
-window._pendingRoute  = null;
-window._currentUserName = null;
+// Авторизация не требуется — гостевой режим по умолчанию
+window._isLoggedIn      = true;
+window._pendingRoute    = null;
+window._currentUserName = 'Пользователь';
 
 // ── handleRoute — читает URL, показывает нужный экран ─
 function handleRoute() {
   var path  = window.location.pathname;
   var route = ROUTES[path] || ROUTES['/'];
-
-  // Не залогинен → запоминаем цель, отправляем на /
-  if (route.screen !== 'auth' && !window._isLoggedIn) {
-    window._pendingRoute = path;
-    _showScreen('auth');
-    history.replaceState(null, '', '/');
-    return;
-  }
-
-  // Уже залогинен и пришёл на / → перенаправляем на /home
-  if (route.screen === 'auth' && window._isLoggedIn) {
-    history.replaceState(null, '', '/home');
-    _showScreen('dashboard');
-    window._origSwitchDashPanel('docs');
-    return;
-  }
 
   _showScreen(route.screen);
   if (route.screen === 'dashboard' && route.panel) {

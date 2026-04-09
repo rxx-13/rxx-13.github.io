@@ -81,10 +81,9 @@
 <!-- ═══════ DASHBOARD ═══════ -->
 <div id="screen-dashboard" class="screen">
   <nav class="topnav">
-    <div class="nav-logo" onclick="goTo('dashboard')">Scriptorium</div>
+    <div class="nav-logo">Scriptorium</div>
     <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn" onclick="goTo('auth')">Выйти</button>
-    <div class="nav-avatar" title="Личный кабинет" onclick="goTo('profile')" style="cursor:pointer;">И</div>
+    <button type="button" class="nav-btn primary" onclick="document.getElementById('fileInput').click()">+ Загрузить</button>
   </nav>
   <div class="dashboard-body">
     <aside class="dash-sidebar">
@@ -116,9 +115,8 @@
         <div class="dash-header">
           <div>
             <div class="dash-title">Мои документы</div>
-            <div class="dash-subtitle" id="dashSubtitle">Загрузите документы для расшифровки</div>
+            <div class="dash-subtitle" id="dashSubtitle">Загрузите документ для распознавания</div>
           </div>
-          <button type="button" class="nav-btn primary" onclick="document.getElementById('fileInput').click()">+ Загрузить</button>
         </div>
         <div class="stats-row">
           <div class="stat-card accent"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Документов</div></div>
@@ -190,9 +188,8 @@
   <nav class="topnav">
     <div class="nav-logo" onclick="goTo('dashboard')" style="cursor:pointer;">← Scriptorium</div>
     <div class="nav-spacer"></div>
-    <span id="editorDocName" style="font-size:13px;color:var(--muted-light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></span>
+    <span id="editorDocName" style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;"></span>
     <div class="nav-spacer"></div>
-    <div class="nav-avatar" onclick="goTo('profile')" style="cursor:pointer;">И</div>
   </nav>
 
   <div class="editor-toolbar">
