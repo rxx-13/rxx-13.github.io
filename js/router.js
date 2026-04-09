@@ -5,14 +5,15 @@
 
 // ── Таблица маршрутов ─────────────────────────────────
 var ROUTES = {
-  '/':        { screen: 'dashboard', panel: 'docs' },
-  '/login':   { screen: 'dashboard', panel: 'docs' },
-  '/home':    { screen: 'dashboard', panel: 'docs' },
-  '/archive': { screen: 'dashboard', panel: 'archive' },
-  '/export':  { screen: 'dashboard', panel: 'export' },
-  '/batch':   { screen: 'dashboard', panel: 'batch' },
-  '/ocr':     { screen: 'editor' },
-  '/profile': { screen: 'profile' }
+  '/':         { screen: 'landing' },
+  '/login':    { screen: 'auth' },
+  '/register': { screen: 'auth' },
+  '/home':     { screen: 'dashboard', panel: 'docs' },
+  '/archive':  { screen: 'dashboard', panel: 'archive' },
+  '/export':   { screen: 'dashboard', panel: 'export' },
+  '/batch':    { screen: 'dashboard', panel: 'batch' },
+  '/ocr':      { screen: 'editor' },
+  '/profile':  { screen: 'profile' }
 };
 
 var PANEL_PATHS = {

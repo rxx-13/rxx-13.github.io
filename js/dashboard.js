@@ -546,7 +546,7 @@ function exportPdf() {
     '<style>body{font-family:"Times New Roman",serif;font-size:13pt;line-height:1.8;margin:2.5cm 3cm;}' +
     'h1{font-size:14pt;font-weight:bold;margin-bottom:0.3cm;}p{margin:0 0 0.2cm;text-align:justify;}' +
     '@media print{@page{size:A4;margin:2cm 2.5cm;}.no-print{display:none!important;}}</style></head><body>' +
-    '<button class="no-print" onclick="window.print()" style="position:fixed;top:16px;right:16px;padding:10px 24px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer;">Сохранить как PDF</button>' +
+    '<button class="no-print" onclick="window.print()" style="position:fixed;top:16px;right:16px;padding:10px 24px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;">Сохранить как PDF</button>' +
     '<h1>' + esc(docName) + '</h1>' + bodyHtml +
     '<script>window.addEventListener("load",function(){window.print();});<\/script></body></html>';
 

@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════════
 
 // ── НАВИГАЦИЯ ─────────────────────────────────────────
-var SCREEN_PATHS = { auth: '/', dashboard: '/home', editor: '/ocr', profile: '/profile' };
+var SCREEN_PATHS = { landing: '/', auth: '/login', dashboard: '/home', editor: '/ocr', profile: '/profile' };
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(function(s) {
