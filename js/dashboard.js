@@ -509,7 +509,7 @@ function buildDocxZip(files, filename, format, docName) {
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a'); a.href=url; a.download=filename; a.click();
   addExportHistory(docName, format, url);
-  showToast('✅ Скачан DOCX');
+  showToast('Скачан DOCX');
 }
 
 // ── ЭКСПОРТ PDF ────────────────────────────────────────
@@ -554,7 +554,7 @@ function exportPdf() {
   var url  = URL.createObjectURL(blob);
   window.open(url, '_blank');
   addExportHistory(docName, 'PDF', url);
-  showToast('📄 Откроется диалог печати — выберите «Сохранить как PDF»');
+  showToast('Откроется диалог печати — выберите «Сохранить как PDF»');
 }
 
 // ── МОДАЛЫ ─────────────────────────────────────────────
@@ -563,4 +563,4 @@ function closeExport(e){
   if (!e || e.target === document.getElementById('exportModal'))
     document.getElementById('exportModal').classList.remove('open');
 }
-function saveProject() { showToast('💾 Проект сохранён'); }
+function saveProject() { showToast('Проект сохранён'); }

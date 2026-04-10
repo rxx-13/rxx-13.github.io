@@ -1,5 +1,4 @@
-<style>
-  :root {
+:root {
     --ink: #1e293b;
     --ink-light: #475569;
     --bg: #f8fafc;
@@ -1166,4 +1165,3 @@
     }
     .export-option { padding: 16px; }
   }
-</style>

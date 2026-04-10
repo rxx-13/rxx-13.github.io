@@ -64,9 +64,9 @@ async function extractPdfPages(docId) {
                        naturalW: cv.width, naturalH: cv.height });
     }
     buildPageThumbs(n); setPageCounter(0, n);
-    showToast('✅ ' + n + ' страниц загружено');
+    showToast(n + ' страниц загружено');
   } catch(e) {
-    showToast('⚠️ Ошибка PDF: ' + e.message, 5000);
+    showToast('Ошибка PDF: ' + e.message, 5000);
     doc.pages = []; doc.pageWords = [];
   }
 }
@@ -290,7 +290,7 @@ function onVpMouseUp(e) {
     if (vp.sel && vp.sel.w > 4 && vp.sel.h > 4) {
       document.getElementById('btnRecognizeSel').style.display = 'flex';
       document.getElementById('btnClearSel').style.display = 'flex';
-      showToast('Область выделена — нажмите ⚡ для распознавания', 3000);
+      showToast('Область выделена — нажмите Распознать', 3000);
     } else { vp.sel = null; clearSelCanvas(); }
   }
 }
@@ -451,7 +451,7 @@ async function recognizeCurrentPage() {
     updateStats();
   } catch(e) {
     showTextState('empty');
-    showToast('❌ ' + e.message, 5000);
+    showToast(e.message, 5000);
     console.error(e);
   } finally {
     btn.disabled = false;
@@ -465,7 +465,7 @@ async function recognizeAllPages() {
   var btn = document.getElementById('recognizeAllBtn');
   btn.disabled = true;
   var n = doc.pages.length;
-  showToast('⚡ Распознаю ' + n + ' страниц…', 30000);
+  showToast('Распознаю ' + n + ' страниц…', 30000);
   for (var i = 0; i < n; i++) {
     await goToPage(i);
     pipelineShow(); pipelineReset(); showTextState('loading');
@@ -477,12 +477,12 @@ async function recognizeAllPages() {
     pipelineHide();
   }
   btn.disabled = false;
-  showToast('✅ Все страницы распознаны');
+  showToast('Все страницы распознаны');
   updateStats();
 }
 
 async function recognizeSelection() {
-  if (!vp.sel || vp.sel.w < 4 || vp.sel.h < 4) { showToast('⚠️ Сначала выделите область'); return; }
+  if (!vp.sel || vp.sel.w < 4 || vp.sel.h < 4) { showToast('Сначала выделите область'); return; }
   var doc = uploadedDocs[currentDocId];
   if (!doc || !doc.pages) return;
 
@@ -510,10 +510,10 @@ async function recognizeSelection() {
     doc.pageWords[currentPage] = existing.concat(words);
     renderWords(doc.pageWords[currentPage], currentPage);
     clearSelection();
-    showToast('✅ Область распознана: ' + words.length + ' слов');
+    showToast('Область распознана: ' + words.length + ' слов');
   } catch(e) {
     showTextState(doc.pageWords && doc.pageWords[currentPage] ? 'result' : 'empty');
-    showToast('❌ ' + e.message, 5000);
+    showToast(e.message, 5000);
   } finally {
     btn.disabled = false;
     pipelineHide();
@@ -688,8 +688,8 @@ function updateConfidence(val) {
 
 function copyRecognizedText() {
   var words = Array.from(document.querySelectorAll('.tw')).map(function(el){ return el.textContent; });
-  if (!words.length) { showToast('⚠️ Нет текста'); return; }
-  navigator.clipboard.writeText(words.join(' ')).then(function(){ showToast('📋 Скопировано'); });
+  if (!words.length) { showToast('Нет текста'); return; }
+  navigator.clipboard.writeText(words.join(' ')).then(function(){ showToast('Скопировано'); });
 }
 
 // ── MODE ───────────────────────────────────────────────
