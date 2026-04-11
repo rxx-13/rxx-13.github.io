@@ -1,9 +1,9 @@
 // ════════════════════════════════════════════════════════
-//  api.js — OCR через Flask-сервер (Qwen2.5-VL в Colab)
+//  api.js — OCR через FastAPI-сервер (HuggingFace Inference API)
 // ════════════════════════════════════════════════════════
 
-// Вставь сюда URL из вывода ячейки 4 в Colab (ngrok-ссылка):
-var SPACE_URL = 'https://grumbly-unprorogued-vita.ngrok-free.dev'
+// Вставь сюда URL запущенного сервера (например, http://localhost:7860):
+var SPACE_URL = 'https://dmitry-402859-space.hf.space'
 
 // ── ГЛАВНАЯ ФУНКЦИЯ OCR ────────────────────────────────
 // Отправляет страницу документа на сервер, получает текст
@@ -11,7 +11,7 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   var doc  = uploadedDocs[docId];
   var page = doc.pages[pageIdx];
 
-  setLoadingMsg('Отправка на сервер…', 'Подключение к Colab');
+  setLoadingMsg('Отправка на сервер…', 'Подключение к серверу');
 
   var json;
   try {
@@ -19,7 +19,7 @@ async function runHuggingFaceOCR(docId, pageIdx) {
   } catch (e) {
     throw new Error(
       'Нет связи с сервером. ' +
-      'Проверь SPACE_URL в js/api.js и убедись, что Colab запущен.\nДетали: ' + e.message
+      'Проверь SPACE_URL в js/api.js и убедись, что сервер запущен.\nДетали: ' + e.message
     );
   }
 
