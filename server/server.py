@@ -24,9 +24,11 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
+PROVIDER = os.environ.get("HF_PROVIDER", "nebius")
+
 client = InferenceClient(
-    model="Qwen/Qwen2.5-VL-3B-Instruct",
-    token=HF_TOKEN,
+    provider=PROVIDER,
+    api_key=HF_TOKEN,
 )
 
 
@@ -45,6 +47,7 @@ def recognize(image_b64: str) -> dict:
     Image.open(io.BytesIO(image_bytes)).convert('RGB')
 
     response = client.chat_completion(
+        model="Qwen/Qwen2.5-VL-3B-Instruct",
         messages=[
             {
                 "role": "user",
