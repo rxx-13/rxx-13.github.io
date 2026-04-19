@@ -24,7 +24,7 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-PROVIDER = os.environ.get("HF_PROVIDER", "fireworks-ai")
+PROVIDER = os.environ.get("HF_PROVIDER", "groq")
 MODEL = os.environ.get("HF_MODEL", "meta-llama/Llama-3.2-11B-Vision-Instruct")
 
 client = InferenceClient(
