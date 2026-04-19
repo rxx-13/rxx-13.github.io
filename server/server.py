@@ -24,7 +24,8 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-PROVIDER = os.environ.get("HF_PROVIDER", "together")
+PROVIDER = os.environ.get("HF_PROVIDER", "fireworks-ai")
+MODEL = os.environ.get("HF_MODEL", "meta-llama/Llama-3.2-11B-Vision-Instruct")
 
 client = InferenceClient(
     provider=PROVIDER,
@@ -47,7 +48,7 @@ def recognize(image_b64: str) -> dict:
     Image.open(io.BytesIO(image_bytes)).convert('RGB')
 
     response = client.chat_completion(
-        model="Qwen/Qwen2.5-VL-3B-Instruct",
+        model=MODEL,
         messages=[
             {
                 "role": "user",
@@ -61,7 +62,7 @@ def recognize(image_b64: str) -> dict:
                     {
                         "type": "text",
                         "text": (
-                            "Перепиши весь рукописный текст на изображении точно как написано. "
+                            "Перепиши весь текст на изображении точно как написано. "
                             "Выведи только текст, без пояснений и комментариев."
                         ),
                     },
