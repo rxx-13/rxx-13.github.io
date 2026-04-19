@@ -24,7 +24,7 @@ app.add_middleware(
 )
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-MODEL = os.environ.get("OCR_MODEL", "llama-3.2-11b-vision-preview")
+MODEL = os.environ.get("OCR_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
