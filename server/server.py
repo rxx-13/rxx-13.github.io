@@ -23,9 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
-MODEL = os.environ.get("OCR_MODEL", "meta-llama/Llama-3.2-11B-Vision-Instruct")
-API_URL = "https://router.huggingface.co/fireworks-ai/v1/chat/completions"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+MODEL = os.environ.get("OCR_MODEL", "llama-3.2-11b-vision-preview")
+API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
 class PredictRequest(BaseModel):
@@ -67,7 +67,7 @@ def recognize(image_b64: str) -> dict:
     response = httpx.post(
         API_URL,
         headers={
-            "Authorization": f"Bearer {HF_TOKEN}",
+            "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json",
         },
         json=payload,
