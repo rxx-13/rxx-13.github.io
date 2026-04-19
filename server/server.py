@@ -1,8 +1,8 @@
 # ════════════════════════════════════════════════════════
 # server.py — Scriptorium OCR Backend
-# FastAPI-сервер, вызывает HuggingFace Inference API напрямую
-# Требует: HF_TOKEN в переменных окружения
-# Запуск: HF_TOKEN=hf_xxx python server.py
+# FastAPI + Groq API (llama-3.2-11b-vision-preview)
+# Требует: GROQ_API_KEY в переменных окружения
+# Запуск: GROQ_API_KEY=gsk_xxx python server.py
 # ════════════════════════════════════════════════════════
 
 import base64
@@ -24,15 +24,14 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen2.5-VL-7B-Instruct")
-HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
+MODEL = os.environ.get("OCR_MODEL", "meta-llama/Llama-3.2-11B-Vision-Instruct")
+API_URL = "https://router.huggingface.co/fireworks-ai/v1/chat/completions"
 
 
 class PredictRequest(BaseModel):
     image: str
 
 
-# ── ФУНКЦИЯ РАСПОЗНАВАНИЯ ─────────────────────────────
 def recognize(image_b64: str) -> dict:
     if ',' in image_b64:
         image_b64 = image_b64.split(',')[1]
@@ -66,7 +65,7 @@ def recognize(image_b64: str) -> dict:
     }
 
     response = httpx.post(
-        HF_API_URL,
+        API_URL,
         headers={
             "Authorization": f"Bearer {HF_TOKEN}",
             "Content-Type": "application/json",
@@ -82,7 +81,6 @@ def recognize(image_b64: str) -> dict:
     return {"corrected": result_text.strip()}
 
 
-# ── ЭНДПОИНТЫ ─────────────────────────────────────────
 @app.post("/predict")
 async def predict(req: PredictRequest):
     if not req.image:
