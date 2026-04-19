@@ -24,7 +24,7 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-PROVIDER = os.environ.get("HF_PROVIDER", "nebius")
+PROVIDER = os.environ.get("HF_PROVIDER", "together")
 
 client = InferenceClient(
     provider=PROVIDER,
