@@ -1,6 +1,6 @@
 # ════════════════════════════════════════════════════════
 # server.py — Scriptorium OCR Backend
-# FastAPI-сервер, вызывает HuggingFace Inference API
+# FastAPI-сервер, вызывает HuggingFace Inference API напрямую
 # Требует: HF_TOKEN в переменных окружения
 # Запуск: HF_TOKEN=hf_xxx python server.py
 # ════════════════════════════════════════════════════════
@@ -9,11 +9,11 @@ import base64
 import io
 import os
 
+import httpx
 from PIL import Image
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from huggingface_hub import InferenceClient
 
 app = FastAPI()
 app.add_middleware(
@@ -24,13 +24,8 @@ app.add_middleware(
 )
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-PROVIDER = os.environ.get("HF_PROVIDER", "groq")
-MODEL = os.environ.get("HF_MODEL", "meta-llama/Llama-3.2-11B-Vision-Instruct")
-
-client = InferenceClient(
-    provider=PROVIDER,
-    api_key=HF_TOKEN,
-)
+MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen2.5-VL-7B-Instruct")
+HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 
 class PredictRequest(BaseModel):
@@ -39,17 +34,15 @@ class PredictRequest(BaseModel):
 
 # ── ФУНКЦИЯ РАСПОЗНАВАНИЯ ─────────────────────────────
 def recognize(image_b64: str) -> dict:
-    # Убираем префикс data:image/...;base64,
     if ',' in image_b64:
         image_b64 = image_b64.split(',')[1]
 
-    # Проверяем, что base64 декодируется в корректное изображение
     image_bytes = base64.b64decode(image_b64)
     Image.open(io.BytesIO(image_bytes)).convert('RGB')
 
-    response = client.chat_completion(
-        model=MODEL,
-        messages=[
+    payload = {
+        "model": MODEL,
+        "messages": [
             {
                 "role": "user",
                 "content": [
@@ -69,10 +62,23 @@ def recognize(image_b64: str) -> dict:
                 ],
             }
         ],
-        max_tokens=1024,
+        "max_tokens": 1024,
+    }
+
+    response = httpx.post(
+        HF_API_URL,
+        headers={
+            "Authorization": f"Bearer {HF_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=60.0,
     )
 
-    result_text = response.choices[0].message.content
+    if not response.is_success:
+        raise HTTPException(status_code=502, detail=response.text)
+
+    result_text = response.json()["choices"][0]["message"]["content"]
     return {"corrected": result_text.strip()}
 
 
@@ -80,7 +86,6 @@ def recognize(image_b64: str) -> dict:
 @app.post("/predict")
 async def predict(req: PredictRequest):
     if not req.image:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Поле image отсутствует")
     return recognize(req.image)
 
