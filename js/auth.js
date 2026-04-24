@@ -3,14 +3,13 @@
 // ════════════════════════════════════════════════════════
 
 // ── НАВИГАЦИЯ ─────────────────────────────────────────
-var SCREEN_PATHS = { landing: '/', dashboard: '/home', editor: '/ocr' };
+var SCREEN_PATHS = { landing: '/', editor: '/ocr' };
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(function(s) {
     s.classList.remove('active');
   });
   document.getElementById('screen-' + id).classList.add('active');
-  if (id === 'dashboard') currentDocId = null;
   var path = SCREEN_PATHS[id] || '/';
   if (window.location.pathname !== path) history.pushState(null, '', path);
 }
@@ -24,10 +23,3 @@ function showToast(msg, dur) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(function() { el.style.display = 'none'; }, dur || 2800);
 }
-
-// ── ИНИЦИАЛИЗАЦИЯ ─────────────────────────────────────
-window.addEventListener('DOMContentLoaded', function() {
-  window.addEventListener('resize', function() {
-    if (typeof vp !== 'undefined' && vp.imgW) vpFit();
-  });
-});

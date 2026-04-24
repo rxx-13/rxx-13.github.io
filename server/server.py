@@ -30,14 +30,22 @@ API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 class PredictRequest(BaseModel):
     image: str
+    context: str = ""
 
 
-def recognize(image_b64: str) -> dict:
+def recognize(image_b64: str, context: str = "") -> dict:
     if ',' in image_b64:
         image_b64 = image_b64.split(',')[1]
 
     image_bytes = base64.b64decode(image_b64)
     Image.open(io.BytesIO(image_bytes)).convert('RGB')
+
+    prompt = (
+        "Перепиши весь текст на изображении точно как написано. "
+        "Выведи только текст, без пояснений и комментариев."
+    )
+    if context.strip():
+        prompt = f"Контекст документа: {context.strip()}\n\n" + prompt
 
     payload = {
         "model": MODEL,
@@ -53,10 +61,7 @@ def recognize(image_b64: str) -> dict:
                     },
                     {
                         "type": "text",
-                        "text": (
-                            "Перепиши весь текст на изображении точно как написано. "
-                            "Выведи только текст, без пояснений и комментариев."
-                        ),
+                        "text": prompt,
                     },
                 ],
             }
@@ -85,7 +90,7 @@ def recognize(image_b64: str) -> dict:
 async def predict(req: PredictRequest):
     if not req.image:
         raise HTTPException(status_code=400, detail="Поле image отсутствует")
-    return recognize(req.image)
+    return recognize(req.image, req.context)
 
 
 @app.get("/health")

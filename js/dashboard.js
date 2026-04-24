@@ -1,64 +1,11 @@
 // ════════════════════════════════════════════════════════
-//  dashboard.js — Загрузка файлов, архив, экспорт, пакет
+//  dashboard.js — Загрузка файлов, экспорт
 // ════════════════════════════════════════════════════════
 
 // ── ГЛОБАЛЬНОЕ СОСТОЯНИЕ ───────────────────────────────
-var uploadedDocs   = {};   // { docId: { file, name, type, dataUrl, pages, pageWords } }
-var currentDocId   = null;
-var currentPage    = 0;
-var archiveItems   = [];   // { docId, name, date, pages, text, pageWords }
-var exportHistory  = [];   // { id, name, format, date, url }
-var batchRunning   = false;
-var batchCancelled = false;
-var batchSkipped   = new Set();
-
-// ── ВСПОМОГАТЕЛЬНЫЕ ───────────────────────────────────
-function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
-
-function svgToBase64(svgEl) {
-  return new Promise(function(res, rej) {
-    var data = new XMLSerializer().serializeToString(svgEl);
-    var cv   = document.createElement('canvas');
-    cv.width = 500; cv.height = 680;
-    var img  = new Image();
-    var blob = new Blob([data], { type: 'image/svg+xml' });
-    var url  = URL.createObjectURL(blob);
-    img.onload  = function(){ cv.getContext('2d').drawImage(img, 0, 0); URL.revokeObjectURL(url); res(cv.toDataURL('image/png').split(',')[1]); };
-    img.onerror = rej;
-    img.src = url;
-  });
-}
-
-// ── ПАНЕЛИ ДАШБОРДА ────────────────────────────────────
-function switchDashPanel(panel) {
-  ['docs', 'archive', 'export', 'batch'].forEach(function(p) {
-    var el  = document.getElementById('panel-' + p);
-    var nav = document.getElementById('nav-' + p);
-    if (el)  el.style.display  = (p === panel) ? 'flex' : 'none';
-    if (nav) nav.classList.toggle('active', p === panel);
-  });
-  if (panel === 'archive') renderArchive();
-  if (panel === 'export')  renderExportHistory();
-  if (panel === 'batch')   renderBatchQueue();
-}
-
-// ── СТАТИСТИКА ─────────────────────────────────────────
-function updateStats() {
-  var docs  = Object.keys(uploadedDocs).length;
-  var pages = 0;
-  Object.keys(uploadedDocs).forEach(function(id) {
-    var d = uploadedDocs[id];
-    if (d && d.pageWords) d.pageWords.forEach(function(pw){ if (pw) pages++; });
-  });
-  var st = document.getElementById('statTotal');
-  var sr = document.getElementById('statReady');
-  var sp = document.getElementById('statPages');
-  if (st) st.textContent = docs;
-  if (sr) sr.textContent = archiveItems.length;
-  if (sp) sp.textContent = pages;
-  var runBtn = document.getElementById('batchRunBtn');
-  if (runBtn && !batchRunning) runBtn.disabled = (docs === 0);
-}
+var uploadedDocs = {};   // { docId: { file, name, type, dataUrl, pages, pageWords } }
+var currentDocId = null;
+var currentPage  = 0;
 
 // ── ЗАГРУЗКА ФАЙЛОВ ────────────────────────────────────
 var ACCEPTED = ['image/jpeg', 'image/png', 'application/pdf', 'image/tiff'];
@@ -78,308 +25,62 @@ function processFiles(files) {
 }
 
 function addFileCard(file) {
-  var id     = 'doc-' + Date.now() + Math.random().toString(36).slice(2, 6);
-  var sizeMB = (file.size / 1024 / 1024).toFixed(1);
-  var ext    = file.name.split('.').pop().toUpperCase();
-  var isPdf  = file.type === 'application/pdf';
+  var id = 'doc-' + Date.now() + Math.random().toString(36).slice(2, 6);
+  var isPdf = file.type === 'application/pdf';
+  uploadedDocs[id] = { file: file, name: file.name, type: file.type,
+                       dataUrl: null, pages: null, pageWords: null };
 
-  uploadedDocs[id] = { file: file, name: file.name, type: file.type, dataUrl: null, pages: null, pageWords: null };
+  var list = document.getElementById('wsFileList');
+  var empty = list.querySelector('.ws-file-empty');
+  if (empty) empty.remove();
 
-  var grid = document.getElementById('docGrid');
-  var card = document.createElement('div');
-  card.className = 'doc-card';
-  card.id = id;
-  card.innerHTML =
-    '<div class="doc-thumb" id="thumb-' + id + '">' + (isPdf ? 'PDF' : ' ') +
-    '<div class="doc-status-badge status-processing" id="badge-' + id + '">Загрузка…</div></div>' +
-    '<div class="doc-info"><div class="doc-name" title="' + file.name + '">' + file.name + '</div>' +
-    '<div class="doc-meta">' + ext + ' · ' + sizeMB + ' МБ</div>' +
-    '<div class="progress-bar" id="pb-' + id + '" style="margin-top:8px">' +
-    '<div class="progress-fill" id="pf-' + id + '" style="width:0%"></div></div></div>';
-  grid.insertBefore(card, grid.firstChild);
-  updateStats();
+  var row = document.createElement('div');
+  row.className = 'ws-file-row';
+  row.id = id;
+  row.innerHTML =
+    '<div class="ws-file-thumb" id="thumb-' + id + '">' + (isPdf ? 'PDF' : '') + '</div>' +
+    '<div class="ws-file-info">' +
+      '<div class="ws-file-name" title="' + file.name + '">' + file.name + '</div>' +
+      '<div class="ws-file-meta">' + (file.size / 1024 / 1024).toFixed(1) + ' МБ</div>' +
+    '</div>';
+  row.onclick = function() { selectFile(id); };
+  list.insertBefore(row, list.firstChild);
 
   var reader = new FileReader();
   reader.onload = function(e2) {
     uploadedDocs[id].dataUrl = e2.target.result;
     if (!isPdf) {
       var t = document.getElementById('thumb-' + id);
-      if (t) { t.style.background = 'url(' + e2.target.result + ') center/cover no-repeat'; t.childNodes[0].textContent = ''; }
+      if (t) { t.style.background = 'url(' + e2.target.result + ') center/cover no-repeat'; t.textContent = ''; }
     }
-    animateCard(id, file);
   };
   reader.readAsDataURL(file);
+
+  selectFile(id);
+  showToast(file.name.slice(0, 28) + ' загружен');
 }
 
-function animateCard(id, file) {
-  var steps = [
-    { label: 'Читаю файл…',    pct: 30,  delay: 300 },
-    { label: 'Декодирование…', pct: 65,  delay: 900 },
-    { label: 'Готово к OCR',   pct: 100, delay: 1600 }
-  ];
-  steps.forEach(function(step) {
-    setTimeout(function() {
-      var pf    = document.getElementById('pf-' + id);
-      var badge = document.getElementById('badge-' + id);
-      var card  = document.getElementById(id);
-      if (pf) pf.style.width = step.pct + '%';
-      if (step.pct < 100) {
-        if (badge) badge.textContent = step.label;
-      } else {
-        if (badge) { badge.textContent = 'Готово к OCR'; badge.className = 'doc-status-badge status-queue'; }
-        var pb = document.getElementById('pb-' + id);
-        if (pb) pb.style.display = 'none';
-        if (card) {
-          card.onclick = (function(i){ return function(){ openEditor(i); }; })(id);
-          card.style.cursor = 'pointer';
-        }
-        showToast(file.name.slice(0, 24) + ' — нажмите для распознавания');
-        updateStats();
-        renderBatchQueue();
-      }
-    }, step.delay);
-  });
+function selectFile(id) {
+  document.querySelectorAll('.ws-file-row').forEach(function(r) { r.classList.remove('active'); });
+  var row = document.getElementById(id);
+  if (row) row.classList.add('active');
+  currentDocId = id;
+  currentPage  = 0;
 }
 
-// ── DRAG & DROP ────────────────────────────────────────
+// ── DRAG & DROP на экран редактора ────────────────────
 (function initDnD() {
   window.addEventListener('DOMContentLoaded', function() {
-    var zone = document.getElementById('uploadZone');
-    if (!zone) return;
-
-    zone.addEventListener('dragenter', function(e) {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-      document.getElementById('dropLabel').style.display = 'block';
-      document.getElementById('uploadBtnLabel').style.display = 'none';
-    });
-    zone.addEventListener('dragover', function(e) { e.preventDefault(); });
-    zone.addEventListener('dragleave', function(e) {
-      if (!zone.contains(e.relatedTarget)) {
-        zone.classList.remove('drag-over');
-        document.getElementById('dropLabel').style.display = 'none';
-        document.getElementById('uploadBtnLabel').style.display = 'inline-block';
-      }
-    });
-    zone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      document.getElementById('dropLabel').style.display = 'none';
-      document.getElementById('uploadBtnLabel').style.display = 'inline-block';
-      processFiles(Array.from(e.dataTransfer.files));
-    });
     document.addEventListener('dragover', function(e) { e.preventDefault(); });
     document.addEventListener('drop', function(e) {
       e.preventDefault();
-      var dash = document.getElementById('screen-dashboard');
-      if (dash && dash.classList.contains('active')) processFiles(Array.from(e.dataTransfer.files));
+      var editor = document.getElementById('screen-editor');
+      if (editor && editor.classList.contains('active')) {
+        processFiles(Array.from(e.dataTransfer.files));
+      }
     });
   });
 })();
-
-// ── АРХИВ ──────────────────────────────────────────────
-function saveToArchive() {
-  var doc = uploadedDocs[currentDocId];
-  if (!doc) { showToast('Нет открытого документа'); return; }
-  var words = doc.pageWords ? doc.pageWords.filter(Boolean) : [];
-  if (!words.length) { showToast('Сначала распознайте документ'); return; }
-
-  var fullText = words.map(function(pw) {
-    return pw.map(function(w){ return w.word; }).join(' ');
-  }).join('\n\n--- Страница ---\n\n');
-
-  var existing = archiveItems.findIndex(function(a){ return a.docId === currentDocId; });
-  var item = { docId: currentDocId, name: doc.name, date: new Date().toLocaleString('ru-RU'),
-               pages: words.length, text: fullText, pageWords: doc.pageWords };
-
-  if (existing >= 0) { archiveItems[existing] = item; showToast('Архив обновлён: ' + doc.name); }
-  else               { archiveItems.unshift(item);    showToast('Сохранено в архив: ' + doc.name); }
-  updateStats();
-}
-
-function renderArchive() {
-  var list  = document.getElementById('archiveList');
-  var empty = document.getElementById('archiveEmpty');
-  if (!archiveItems.length) {
-    empty.style.display = 'flex'; list.style.display = 'none'; return;
-  }
-  empty.style.display = 'none'; list.style.display = 'block';
-  list.innerHTML = '';
-  archiveItems.forEach(function(item) {
-    var row = document.createElement('div');
-    row.className = 'doc-list-item'; row.style.cursor = 'default';
-    row.innerHTML =
-      '<div class="doc-list-icon" style="font-size:12px;font-weight:600;color:var(--muted);">TXT</div>' +
-      '<div class="doc-list-info"><div class="doc-list-name">' + item.name + '</div>' +
-      '<div class="doc-list-meta">' + item.pages + ' стр. · ' + item.date + '</div></div>' +
-      '<div style="display:flex;gap:8px;">' +
-      '<button type="button" class="doc-list-action" onclick="archiveDownloadTxt(\'' + item.docId + '\')">↓ TXT</button>' +
-      '<button type="button" class="doc-list-action" style="background:var(--error);color:white;" ' +
-        'onclick="archiveDelete(\'' + item.docId + '\')">✕</button></div>';
-    list.appendChild(row);
-  });
-}
-
-function archiveDownloadTxt(docId) {
-  var item = archiveItems.find(function(a){ return a.docId === docId; });
-  if (!item) return;
-  var blob = new Blob([item.text], { type: 'text/plain;charset=utf-8' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href = url; a.download = item.name.replace(/\.[^.]+$/, '') + '_распознано.txt'; a.click();
-  addExportHistory(item.name, 'TXT', url);
-  showToast('Скачан TXT из архива');
-}
-
-function archiveDelete(docId) {
-  archiveItems = archiveItems.filter(function(a){ return a.docId !== docId; });
-  renderArchive(); updateStats(); showToast('Удалено из архива');
-}
-
-function archiveExportAll() {
-  if (!archiveItems.length) { showToast('Архив пуст'); return; }
-  archiveItems.forEach(function(item){ archiveDownloadTxt(item.docId); });
-}
-
-// ── ИСТОРИЯ ЭКСПОРТА ────────────────────────────────────
-var exportIcons = { TXT: 'TXT', DOCX: 'DOC', PDF: 'PDF' };
-
-function addExportHistory(name, format, url) {
-  exportHistory.unshift({ id: Date.now(), name: name, format: format,
-                          date: new Date().toLocaleString('ru-RU'), url: url });
-  updateStats();
-}
-
-function renderExportHistory() {
-  var list  = document.getElementById('exportHistoryList');
-  var empty = document.getElementById('exportEmpty');
-  if (!exportHistory.length) { empty.style.display = 'flex'; list.innerHTML = ''; return; }
-  empty.style.display = 'none';
-  list.innerHTML = '';
-  exportHistory.forEach(function(item) {
-    var row = document.createElement('div');
-    row.className = 'doc-list-item';
-    row.innerHTML =
-      '<div class="doc-list-icon" style="font-size:12px;font-weight:600;color:var(--muted);">' + (exportIcons[item.format] || 'FILE') + '</div>' +
-      '<div class="doc-list-info"><div class="doc-list-name">' + item.name + '</div>' +
-      '<div class="doc-list-meta">' + item.format + ' · ' + item.date + '</div></div>' +
-      '<a class="doc-list-action" href="' + item.url + '" download>↓ Скачать</a>';
-    list.appendChild(row);
-  });
-}
-
-function clearExportHistory() {
-  exportHistory = []; renderExportHistory(); showToast('История экспорта очищена');
-}
-
-// ── ПАКЕТНАЯ ОБРАБОТКА ─────────────────────────────────
-function renderBatchQueue() {
-  var ids    = Object.keys(uploadedDocs);
-  var qEl    = document.getElementById('batchQueue');
-  var empty  = document.getElementById('batchQueueEmpty');
-  var runBtn = document.getElementById('batchRunBtn');
-  if (!ids.length) {
-    empty.style.display = 'block'; qEl.style.display = 'none';
-    if (runBtn) runBtn.disabled = true; return;
-  }
-  empty.style.display = 'none'; qEl.style.display = 'block';
-  if (runBtn) runBtn.disabled = batchRunning;
-  qEl.innerHTML = '';
-
-  ids.forEach(function(id) {
-    var doc       = uploadedDocs[id];
-    var donePages = doc.pageWords ? doc.pageWords.filter(Boolean).length : 0;
-    var totalPages= doc.pages ? doc.pages.length : '?';
-    var isSkipped = batchSkipped.has(id);
-    var isRunning = batchRunning && currentDocId === id;
-
-    var statusText, statusColor;
-    if (isSkipped)      { statusText = '⊘ Пропущен';   statusColor = 'var(--muted)'; }
-    else if (isRunning) { statusText = 'Обработка…';   statusColor = 'var(--warning)'; }
-    else if (donePages > 0 && donePages >= (doc.pages ? doc.pages.length : 1))
-                        { statusText = 'Готово — ' + donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--success)'; }
-    else if (donePages > 0)
-                        { statusText = donePages + '/' + totalPages + ' стр.'; statusColor = 'var(--warning)'; }
-    else                { statusText = 'Ожидает';      statusColor = 'var(--muted)'; }
-
-    var row = document.createElement('div');
-    row.id = 'batch-row-' + id;
-    row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);' + (isSkipped ? 'opacity:0.45;' : '');
-    row.innerHTML =
-      '<div style="font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;">' + (doc.type === 'application/pdf' ? 'PDF' : 'IMG') + '</div>' +
-      '<div style="flex:1;min-width:0;">' +
-      '<div style="font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + doc.name + '</div>' +
-      '<div style="font-size:11px;color:' + statusColor + ';margin-top:2px;" id="batch-status-' + id + '">' + statusText + '</div>' +
-      '<div class="progress-bar" id="batch-pb-' + id + '" style="margin-top:6px;display:none;">' +
-      '<div class="progress-fill" id="batch-pf-' + id + '" style="width:0%"></div></div></div>' +
-      '<button type="button" onclick="batchSkipDoc(\'' + id + '\')" ' +
-        'style="width:26px;height:26px;flex-shrink:0;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:13px;color:var(--muted);">⊘</button>' +
-      '<button type="button" onclick="openEditor(\'' + id + '\')" ' +
-        'style="padding:5px 12px;background:var(--primary);color:white;border:none;border-radius:var(--radius);font-size:11px;cursor:pointer;flex-shrink:0;">Открыть</button>';
-    qEl.appendChild(row);
-  });
-}
-
-function batchSkipDoc(id) { batchSkipped.add(id); renderBatchQueue(); }
-function cancelBatch() { if (batchRunning) { batchCancelled = true; showToast('Отмена…', 2000); } }
-
-async function runBatchAll() {
-  var ids = Object.keys(uploadedDocs);
-  if (!ids.length) { showToast('⚠️ Нет документов'); return; }
-
-  batchRunning = true; batchCancelled = false;
-  var runBtn = document.getElementById('batchRunBtn');
-  var cancelBtn = document.getElementById('batchCancelBtn');
-  if (runBtn)    { runBtn.disabled = true; runBtn.textContent = 'Обработка…'; }
-  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
-
-  var processed = 0;
-
-  for (var i = 0; i < ids.length; i++) {
-    if (batchCancelled) break;
-    var id  = ids[i];
-    var doc = uploadedDocs[id];
-    if (batchSkipped.has(id)) continue;
-
-    var statusEl = document.getElementById('batch-status-' + id);
-    if (statusEl) { statusEl.textContent = 'Обработка…'; statusEl.style.color = 'var(--warning)'; }
-    currentDocId = id;
-
-    try {
-      if (!doc.pages) await initPages(id);
-      var n = doc.pages ? doc.pages.length : 1;
-      if (!doc.pageWords) doc.pageWords = new Array(n).fill(null);
-
-      for (var p = 0; p < n; p++) {
-        if (batchCancelled || batchSkipped.has(id)) break;
-        currentPage = p;
-        pipelineShow(); pipelineReset();
-        var words = await runPipeline(id, p, null);
-        doc.pageWords[p] = words;
-        var done = doc.pageWords.filter(Boolean).length;
-        var pf = document.getElementById('batch-pf-' + id);
-        var pb = document.getElementById('batch-pb-' + id);
-        if (pf) pf.style.width = Math.round(done / n * 100) + '%';
-        if (pb) pb.style.display = 'block';
-        pipelineHide();
-      }
-
-      if (!batchCancelled && !batchSkipped.has(id)) {
-        if (statusEl) { statusEl.textContent = 'Готово — ' + n + ' стр.'; statusEl.style.color = 'var(--success)'; }
-        processed++;
-      }
-    } catch(e) {
-      if (statusEl) { statusEl.textContent = e.message; statusEl.style.color = 'var(--error)'; }
-      pipelineHide();
-    }
-  }
-
-  batchRunning = false; batchCancelled = false; batchSkipped.clear();
-  if (runBtn)    { runBtn.disabled = false; runBtn.textContent = 'Запустить все'; }
-  if (cancelBtn) cancelBtn.style.display = 'none';
-  updateStats(); renderBatchQueue();
-  showToast('Пакетная обработка завершена — ' + processed + ' документов');
-}
 
 // ── ЭКСПОРТ TXT ────────────────────────────────────────
 function exportTxt() {
@@ -396,9 +97,8 @@ function exportTxt() {
   if (line.length) lines.push(line.join(' '));
   var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   var url  = URL.createObjectURL(blob);
-  var a = document.createElement('a');
+  var a    = document.createElement('a');
   a.href = url; a.download = docName + '_распознано.txt'; a.click();
-  addExportHistory(docName + '.txt', 'TXT', url);
   showToast('Скачан TXT');
 }
 
@@ -428,9 +128,9 @@ function exportDocx() {
   var bodyXml = paragraphs.map(function(para) {
     if (!para.length) return '<w:p/>';
     var runs = para.map(function(w, i) {
-      var color = colorForSrc(w.src, w.conf);
+      var color    = colorForSrc(w.src, w.conf);
       var colorTag = color ? '<w:color w:val="' + color + '"/>' : '';
-      var text = xmlEsc(i > 0 ? ' ' + w.text : w.text);
+      var text     = xmlEsc(i > 0 ? ' ' + w.text : w.text);
       return '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/>' +
              '<w:sz w:val="24"/>' + colorTag + '</w:rPr>' +
              '<w:t xml:space="preserve">' + text + '</w:t></w:r>';
@@ -475,10 +175,10 @@ function exportDocx() {
     'word/document.xml':            documentXml,
     'word/styles.xml':              stylesXml,
     'word/_rels/document.xml.rels': wordRelsXml
-  }, docName + '_распознано.docx', 'DOCX', docName);
+  }, docName + '_распознано.docx');
 }
 
-function buildDocxZip(files, filename, format, docName) {
+function buildDocxZip(files, filename) {
   var enc = new TextEncoder(), centralDir = [], parts = [], offset = 0;
   function u16(n){ var b=new Uint8Array(2); b[0]=n&0xFF; b[1]=(n>>8)&0xFF; return b; }
   function u32(n){ var b=new Uint8Array(4); b[0]=n&0xFF; b[1]=(n>>8)&0xFF; b[2]=(n>>16)&0xFF; b[3]=(n>>24)&0xFF; return b; }
@@ -508,7 +208,6 @@ function buildDocxZip(files, filename, format, docName) {
   var blob=new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a'); a.href=url; a.download=filename; a.click();
-  addExportHistory(docName, format, url);
   showToast('Скачан DOCX');
 }
 
@@ -553,14 +252,12 @@ function exportPdf() {
   var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   var url  = URL.createObjectURL(blob);
   window.open(url, '_blank');
-  addExportHistory(docName, 'PDF', url);
   showToast('Откроется диалог печати — выберите «Сохранить как PDF»');
 }
 
 // ── МОДАЛЫ ─────────────────────────────────────────────
 function openExport()  { document.getElementById('exportModal').classList.add('open'); }
-function closeExport(e){
+function closeExport(e) {
   if (!e || e.target === document.getElementById('exportModal'))
     document.getElementById('exportModal').classList.remove('open');
 }
-function saveProject() { showToast('Проект сохранён'); }

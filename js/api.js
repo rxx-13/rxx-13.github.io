@@ -7,7 +7,7 @@ var SPACE_URL = 'https://dmitry-402859-space.hf.space'
 
 // ── ГЛАВНАЯ ФУНКЦИЯ OCR ────────────────────────────────
 // Отправляет страницу документа на сервер, получает текст
-async function runHuggingFaceOCR(docId, pageIdx) {
+async function runHuggingFaceOCR(docId, pageIdx, context) {
   var doc  = uploadedDocs[docId];
   var page = doc.pages[pageIdx];
 
@@ -15,7 +15,7 @@ async function runHuggingFaceOCR(docId, pageIdx) {
 
   var json;
   try {
-    json = await callServer(SPACE_URL, page.dataUrl);
+    json = await callServer(SPACE_URL, page.dataUrl, context);
   } catch (e) {
     throw new Error(
       'Нет связи с сервером. ' +
@@ -32,13 +32,13 @@ async function runHuggingFaceOCR(docId, pageIdx) {
 }
 
 // ── ЗАПРОС К СЕРВЕРУ ──────────────────────────────────
-// POST /predict  →  { image: "data:image/jpeg;base64,..." }
+// POST /predict  →  { image: "data:image/jpeg;base64,...", context: "..." }
 // ответ:          { corrected: "текст" }
-async function callServer(baseUrl, imageData) {
+async function callServer(baseUrl, imageData, context) {
   var resp = await fetch(baseUrl + '/predict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: imageData })
+    body: JSON.stringify({ image: imageData, context: context || '' })
   });
 
   if (!resp.ok) {

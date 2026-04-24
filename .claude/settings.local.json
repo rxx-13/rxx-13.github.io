@@ -3,7 +3,11 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.fireworks.ai)"
+      "WebFetch(domain:docs.fireworks.ai)",
+      "Bash(pandoc --version)",
+      "Bash(python -c \"import docx; print\\('ok'\\)\")",
+      "Bash(python -c \"from docx import Document; print\\('ok'\\)\")",
+      "Bash(pip install *)"
     ]
   }
 }

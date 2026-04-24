@@ -22,10 +22,6 @@
 <div id="screen-landing" class="screen active">
   <nav class="topnav landing-nav">
     <div class="nav-logo">Scriptorium</div>
-    <div class="nav-links">
-      <a href="#features" class="nav-link">Возможности</a>
-      <a href="#tools" class="nav-link">Инструменты</a>
-    </div>
     <div class="nav-spacer"></div>
   </nav>
 
@@ -33,32 +29,8 @@
     <div class="hero-content">
       <h1 class="hero-title">Расшифровка рукописей<br>с помощью ИИ</h1>
       <p class="hero-subtitle">Загрузите скан рукописного документа — получите точный цифровой текст за секунды. OCR на базе Qwen2.5-VL.</p>
-      <button type="button" class="hero-cta" onclick="goTo('dashboard')">Начать →</button>
+      <button type="button" class="hero-cta" onclick="goTo('editor')">Начать →</button>
       <div class="hero-formats">Поддержка JPG · PNG · PDF · TIFF</div>
-    </div>
-  </section>
-
-  <section class="tools-section" id="tools">
-    <div class="tools-header">
-      <h2 class="tools-title">Инструменты</h2>
-      <p class="tools-subtitle">Всё для работы с рукописными документами</p>
-    </div>
-    <div class="tools-grid">
-      <div class="tool-card" onclick="goTo('dashboard')">
-        <div class="tool-card-icon">&#9998;</div>
-        <div class="tool-card-name">Распознавание</div>
-        <div class="tool-card-desc">OCR рукописного текста с коррекцией по базе почерков</div>
-      </div>
-      <div class="tool-card" onclick="goTo('dashboard')">
-        <div class="tool-card-icon">&#9776;</div>
-        <div class="tool-card-name">Пакетная обработка</div>
-        <div class="tool-card-desc">Распознайте десятки документов за один раз</div>
-      </div>
-      <div class="tool-card" onclick="goTo('dashboard')">
-        <div class="tool-card-icon">&#8595;</div>
-        <div class="tool-card-name">Экспорт</div>
-        <div class="tool-card-desc">Скачайте результат в DOCX, PDF или TXT</div>
-      </div>
     </div>
   </section>
 
@@ -69,234 +41,81 @@
   </footer>
 </div>
 
-<!-- ═══════ DASHBOARD ═══════ -->
-<div id="screen-dashboard" class="screen">
-  <nav class="topnav">
-    <div class="nav-logo" onclick="goTo('landing')" style="cursor:pointer;">Scriptorium</div>
-    <div class="nav-spacer"></div>
-    <button type="button" class="nav-btn primary" onclick="document.getElementById('fileInput').click()">+ Загрузить</button>
-  </nav>
-  <div class="dashboard-body">
-    <main class="dash-main">
-      <input type="file" id="fileInput" multiple
-        accept=".jpg,.jpeg,.png,.pdf,.tiff,.tif"
-        style="display:none" onchange="handleFileInputChange(event)">
-
-      <div class="bottom-nav" id="dashNav">
-        <div class="bottom-nav-item active" id="nav-docs" onclick="switchDashPanel('docs')">Документы</div>
-        <div class="bottom-nav-item" id="nav-archive" onclick="switchDashPanel('archive')">Архив</div>
-        <div class="bottom-nav-item" id="nav-export" onclick="switchDashPanel('export')">Экспорт</div>
-        <div class="bottom-nav-item" id="nav-batch" onclick="switchDashPanel('batch')">Пакетная</div>
-      </div>
-
-      <!-- Мои документы -->
-      <div id="panel-docs" class="dash-panel">
-        <div class="dash-header">
-          <div>
-            <div class="dash-title">Мои документы</div>
-            <div class="dash-subtitle" id="dashSubtitle">Загрузите документ для распознавания</div>
-          </div>
-        </div>
-        <div class="stats-row">
-          <div class="stat-card accent"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Документов</div></div>
-          <div class="stat-card"><div class="stat-value" id="statReady">0</div><div class="stat-label">В архиве</div></div>
-          <div class="stat-card"><div class="stat-value" id="statProc">0</div><div class="stat-label">В обработке</div></div>
-          <div class="stat-card"><div class="stat-value" id="statPages">0</div><div class="stat-label">Страниц расшифровано</div></div>
-        </div>
-        <div class="upload-zone" id="uploadZone">
-          <div class="upload-icon">&#8679;</div>
-          <div class="upload-title">Перетащите файл сюда</div>
-          <div class="upload-formats">JPG · PNG · PDF · TIFF</div>
-          <div class="upload-btn" id="uploadBtnLabel" onclick="document.getElementById('fileInput').click()">Выбрать файл</div>
-          <div id="dropLabel" style="display:none;font-size:18px;margin-top:10px;color:var(--primary);font-weight:600;">Отпустите для загрузки</div>
-        </div>
-        <div class="section-title">Последние документы</div>
-        <div class="doc-grid" id="docGrid"></div>
-      </div>
-
-      <!-- Архив -->
-      <div id="panel-archive" class="dash-panel" style="display:none;">
-        <div class="dash-header">
-          <div><div class="dash-title">Архив</div><div class="dash-subtitle">Расшифрованные документы</div></div>
-          <button type="button" class="nav-btn primary" onclick="archiveExportAll()">Экспортировать все</button>
-        </div>
-        <div id="archiveEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;">
-          <div style="font-size:15px;font-weight:500;color:var(--ink-light);">Архив пуст</div>
-          <div style="font-size:13px;color:var(--muted);text-align:center;max-width:300px;line-height:1.6;">После распознавания нажмите «В архив» в редакторе</div>
-        </div>
-        <div class="doc-list" id="archiveList" style="display:none;"></div>
-      </div>
-
-      <!-- История экспорта -->
-      <div id="panel-export" class="dash-panel" style="display:none;">
-        <div class="dash-header">
-          <div><div class="dash-title">История экспорта</div><div class="dash-subtitle">Все скачанные файлы за сессию</div></div>
-          <button type="button" class="nav-btn" onclick="clearExportHistory()">Очистить</button>
-        </div>
-        <div id="exportEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;">
-          <div style="font-size:15px;font-weight:500;color:var(--ink-light);">История пуста</div>
-        </div>
-        <div class="doc-list" id="exportHistoryList"></div>
-      </div>
-
-      <!-- Пакетная обработка -->
-      <div id="panel-batch" class="dash-panel" style="display:none;">
-        <div class="dash-header">
-          <div><div class="dash-title">Пакетная обработка</div><div class="dash-subtitle">Распознайте несколько документов</div></div>
-        </div>
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;">
-          <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
-            <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);flex:1;">Очередь</span>
-            <button type="button" class="nav-btn" onclick="document.getElementById('fileInput').click()" style="padding:6px 14px;font-size:11px;">+ Добавить</button>
-            <button type="button" class="nav-btn primary" id="batchRunBtn" onclick="runBatchAll()" style="padding:6px 14px;font-size:11px;" disabled>Запустить все</button>
-            <button type="button" class="nav-btn" id="batchCancelBtn" onclick="cancelBatch()" style="padding:6px 14px;font-size:11px;display:none;border-color:var(--error);color:var(--error);">✕ Отменить</button>
-          </div>
-          <div id="batchQueueEmpty" style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">Загрузите файлы в «Мои документы»</div>
-          <div id="batchQueue" style="display:none;"></div>
-        </div>
-        <select id="batchLang" style="display:none;"><option value="auto" selected></option></select>
-      </div>
-    </main>
-  </div>
-</div>
-
 <!-- ═══════ EDITOR ═══════ -->
 <div id="screen-editor" class="screen">
   <nav class="topnav">
-    <div class="nav-logo" onclick="goTo('dashboard')" style="cursor:pointer;">← Scriptorium</div>
-    <div class="nav-spacer"></div>
-    <span id="editorDocName" style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;"></span>
+    <div class="nav-logo" onclick="goTo('landing')" style="cursor:pointer;">← Scriptorium</div>
     <div class="nav-spacer"></div>
   </nav>
 
-  <div class="editor-toolbar">
-    <div class="toolbar-group">
-      <button type="button" class="tool-btn primary" id="recognizeBtn" onclick="recognizeCurrentPage()"
-        style="border-radius:var(--radius) 0 0 var(--radius);">Распознать</button>
-      <button type="button" class="tool-btn" id="recognizeAllBtn" onclick="recognizeAllPages()"
-        style="border-radius:0 var(--radius) var(--radius) 0;padding:0 11px;font-size:11px;">Весь документ</button>
-    </div>
-    <select id="engineSelect" style="height:32px;padding:0 10px;background:white;border:1px solid var(--border);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-light);">
-      <option value="hf">Qwen AI (HuggingFace)</option>
-    </select>
-    <select id="langSelect" style="display:none;"><option value="auto" selected></option></select>
-    <div class="toolbar-divider"></div>
-    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageHW" checked style="accent-color:var(--primary);"> Почерки</label>
-    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" id="stageAbbr" checked style="accent-color:var(--primary);"> Сокращения</label>
-    <div class="toolbar-divider"></div>
-    <button type="button" class="tool-btn" onclick="openExport()">Экспорт</button>
-    <button type="button" class="tool-btn" onclick="saveToArchive()">В архив</button>
-    <div class="confidence-group">
-      <span class="confidence-label">Порог</span>
-      <input type="range" class="confidence-slider" min="0" max="100" value="60" oninput="updateConfidence(this.value)">
-      <span id="confVal" style="font-size:11px;color:var(--muted);min-width:28px;font-family:'JetBrains Mono',monospace">60%</span>
-    </div>
-  </div>
+  <input type="file" id="fileInput" multiple
+    accept=".jpg,.jpeg,.png,.pdf,.tiff,.tif"
+    style="display:none" onchange="handleFileInputChange(event)">
 
-  <div class="pipeline-bar" id="pipelineBar">
-    <div class="pipeline-step" id="ps-ocr"><span class="ps-dot"></span>OCR (Qwen AI)</div>
-    <span class="pipeline-arrow">›</span>
-    <div class="pipeline-step" id="ps-hw"><span class="ps-dot"></span>База почерков</div>
-    <span class="pipeline-arrow">›</span>
-    <div class="pipeline-step" id="ps-abbr"><span class="ps-dot"></span>Сокращения</div>
-    <span class="pipeline-msg" id="pipelineMsg">Инициализация…</span>
-  </div>
-
-  <div class="legend-bar">
-    <span style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:4px;">Источник:</span>
-    <div class="legend-item"><div class="legend-dot ld-ocr"></div>OCR</div>
-    <div class="legend-item"><div class="legend-dot ld-hwdb"></div>База почерков</div>
-    <div class="legend-item"><div class="legend-dot ld-abbr"></div>Сокращение</div>
-    <div class="legend-item"><div class="legend-dot ld-unc"></div>Не распознано</div>
-    <span style="margin-left:auto;font-size:10px;color:var(--muted);" id="pageStats"></span>
-  </div>
-
-  <div class="editor-body">
-    <div class="image-panel">
-      <div class="panel-header">
-        <span class="panel-title" id="imgPanelTitle">Оригинал документа</span>
-        <button type="button" class="panel-tool" onclick="vZoom(-0.2)" title="Уменьшить">−</button>
-        <button type="button" class="panel-tool" onclick="vZoom(0.2)"  title="Увеличить">+</button>
-        <button type="button" class="panel-tool" onclick="vFit()"      title="По размеру окна">⊡</button>
-        <button type="button" class="panel-tool" onclick="vRotate(-90)" title="Повернуть влево">↺</button>
-        <button type="button" class="panel-tool" onclick="vRotate(90)"  title="Повернуть вправо">↻</button>
-        <button type="button" class="panel-tool active" id="btnModePan"    onclick="setMode('pan')">✥</button>
-        <button type="button" class="panel-tool"        id="btnModeSelect" onclick="setMode('select')">⬚</button>
-        <button type="button" class="panel-tool" id="btnRecognizeSel" onclick="recognizeSelection()" style="display:none;">⚡</button>
-        <button type="button" class="panel-tool" id="btnClearSel"     onclick="clearSelection()"     style="display:none;">✕</button>
+  <div class="workspace">
+    <!-- ЛЕВАЯ ПАНЕЛЬ -->
+    <aside class="ws-left">
+      <div class="ws-left-top">
+        <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">+ Загрузить файлы</button>
+        <select id="engineSelect" class="engine-select">
+          <option value="hf">Qwen AI (HuggingFace)</option>
+        </select>
       </div>
 
-      <div class="image-viewport mode-pan" id="imageViewport">
-        <div id="imgStage">
-          <img id="docImageEl" style="display:none;" alt="Документ">
-          <canvas id="docCanvas" style="display:none;"></canvas>
-          <canvas id="overlayCanvas"></canvas>
-          <canvas id="selCanvas"></canvas>
-          <div id="wordHighlight"></div>
+      <div class="ws-file-list" id="wsFileList">
+        <div class="ws-file-empty">Загрузите файлы для распознавания</div>
+      </div>
+
+      <div class="ws-context">
+        <label class="ws-context-label">Контекст для ИИ</label>
+        <textarea id="ocrContext" class="ws-context-input"
+          placeholder="Опишите, о чём текст — период, тема, автор. Это поможет нейросети корректнее распознавать рукопись."></textarea>
+      </div>
+    </aside>
+
+    <!-- ПРАВАЯ ПАНЕЛЬ -->
+    <section class="ws-right">
+      <div class="ws-right-top">
+        <button type="button" class="btn-primary" id="recognizeBtn" onclick="recognizeCurrentPage()">Распознать</button>
+        <button type="button" class="btn-secondary" onclick="toggleAdvanced()" title="Расширенные настройки">⚙</button>
+        <button type="button" class="btn-secondary" onclick="openExport()" style="margin-left:auto;">Экспорт</button>
+      </div>
+
+      <!-- СКРЫТАЯ ПАНЕЛЬ РАСШИРЕННЫХ НАСТРОЕК (задел на будущее) -->
+      <div class="ws-advanced" id="wsAdvanced" style="display:none;">
+        <div class="adv-group">
+          <label>Порог уверенности</label>
+          <input type="range" min="0" max="100" value="60" oninput="updateConfidence(this.value)">
+          <span id="confVal">60%</span>
         </div>
-        <div id="vpEmpty" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;">
-          <div style="font-size:48px;opacity:0.12;">🖼️</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:0.08em;text-transform:uppercase;">Загрузите документ</div>
+        <div class="adv-group">
+          <label>Яркость</label>
+          <input type="range" id="sliderBright" min="40" max="200" value="100"
+            oninput="updateSliderLabel('sliderBright','brightVal',100)">
+          <span id="brightVal">100%</span>
         </div>
+        <div class="adv-group">
+          <label>Контраст</label>
+          <input type="range" id="sliderContrast" min="40" max="250" value="100"
+            oninput="updateSliderLabel('sliderContrast','contrastVal',100)">
+          <span id="contrastVal">100%</span>
+        </div>
+        <!-- Место под будущие настройки (почерки, сокращения и т.п.) -->
       </div>
 
-      <div class="page-nav-top" id="pageNavTop" style="display:none;">
-        <button type="button" class="page-nav-btn" id="firstPageBtn" onclick="goToPage(0)" disabled style="font-size:10px;">⏮</button>
-        <button type="button" class="page-nav-btn" id="prevPageBtn"  onclick="goToPage(currentPage-1)" disabled>◀</button>
-        <div class="page-input-wrap">
-          <input type="number" id="pageInputEl" value="1" min="1"
-            onchange="goToPageFromInput(this.value)"
-            onkeydown="if(event.key==='Enter'){goToPageFromInput(this.value);this.blur();}">
-          <span class="page-total-label" id="pageTotalLabel">/ —</span>
+      <div class="ws-text-panel">
+        <div class="text-state" id="stateEmpty">
+          <div class="ts-title">Текст ещё не распознан</div>
+          <div class="ts-sub">Выберите файл слева и нажмите <strong>Распознать</strong></div>
         </div>
-        <button type="button" class="page-nav-btn" id="nextPageBtn" onclick="goToPage(currentPage+1)" disabled>▶</button>
-        <button type="button" class="page-nav-btn" id="lastPageBtn" onclick="goToLastPage()" disabled style="font-size:10px;">⏭</button>
-      </div>
-
-      <div class="page-nav-strip" id="pageNavStrip" style="display:none;">
-        <div class="page-thumb-row" id="pageThumbs"></div>
-      </div>
-
-      <div class="image-controls">
-        <span class="img-ctrl-label" title="Яркость">☀</span>
-        <div class="img-ctrl-group">
-          <div class="img-ctrl-track">
-            <input type="range" class="img-ctrl-slider" id="sliderBright" min="40" max="200" value="100"
-              oninput="applyImgFilter();updateSliderLabel('sliderBright','brightVal',100)">
-          </div>
-          <span class="img-ctrl-value" id="brightVal">100%</span>
+        <div class="text-state" id="stateLoading" style="display:none;">
+          <div class="proc-spinner"></div>
+          <div class="ts-title" id="loadingTitle">Запуск…</div>
+          <div class="ts-sub" id="loadingSubtitle"></div>
         </div>
-        <span class="img-ctrl-label" style="margin-left:4px;" title="Контраст">◑</span>
-        <div class="img-ctrl-group">
-          <div class="img-ctrl-track">
-            <input type="range" class="img-ctrl-slider" id="sliderContrast" min="40" max="250" value="100"
-              oninput="applyImgFilter();updateSliderLabel('sliderContrast','contrastVal',100)">
-          </div>
-          <span class="img-ctrl-value" id="contrastVal">100%</span>
-        </div>
-        <span class="img-ctrl-label" style="margin-left:6px;min-width:36px;text-align:right;" id="zoomLabel">100%</span>
+        <div class="text-content" id="textContent" style="display:none;"></div>
       </div>
-    </div>
-
-    <div class="text-panel">
-      <div class="panel-header">
-        <span class="panel-title" id="textPanelTitle">Распознанный текст</span>
-        <button type="button" class="panel-tool" onclick="copyRecognizedText()" title="Копировать">📋</button>
-      </div>
-      <div class="text-state" id="stateEmpty">
-        <div class="ts-icon">✍️</div>
-        <div class="ts-title">Текст ещё не распознан</div>
-        <div class="ts-sub">Нажмите <strong>Распознать</strong> для запуска</div>
-      </div>
-      <div class="text-state" id="stateLoading" style="display:none;">
-        <div class="proc-spinner"></div>
-        <div class="ts-title" id="loadingTitle">Запуск…</div>
-        <div class="ts-sub" id="loadingSubtitle" style="font-family:'JetBrains Mono',monospace;font-size:11px;"></div>
-      </div>
-      <div class="text-content" id="textContent" style="display:none;"></div>
-    </div>
+    </section>
   </div>
 </div>
 
@@ -322,6 +141,11 @@
 
 <!-- ═══ TOAST ═══ -->
 <div id="toastEl" style="display:none" class="toast"></div>
+
+<!-- Скрытые флаги совместимости (используются в pipeline, задел на будущее) -->
+<input type="checkbox" id="stageHW" checked style="display:none;">
+<input type="checkbox" id="stageAbbr" checked style="display:none;">
+<select id="langSelect" style="display:none;"><option value="auto" selected></option></select>
 
 <!-- Порядок важен: сначала общие данные, потом логика -->
 <script src="js/dashboard.js"></script>
