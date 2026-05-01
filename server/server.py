@@ -41,13 +41,6 @@ MODELS = [
         "description": "Быстрая модель Groq, хороша для чистых сканов",
     },
     {
-        "id": "groq-maverick",
-        "label": "Llama 4 Maverick (качественно)",
-        "provider": "groq",
-        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
-        "description": "Лучшая VL-модель Groq, 128 экспертов, медленнее Scout",
-    },
-    {
         "id": "gemini-flash",
         "label": "Gemini 2.0 Flash (рукописи)",
         "provider": "gemini",
