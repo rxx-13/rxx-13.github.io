@@ -59,18 +59,25 @@
       <div class="ws-left-top">
         <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">+ Загрузить файлы</button>
         <select id="engineSelect" class="engine-select">
-          <option value="hf">Qwen AI (HuggingFace)</option>
+          <option value="groq-scout">Загрузка моделей…</option>
         </select>
       </div>
 
-      <div class="ws-file-list" id="wsFileList">
+      <div class="ws-preview" id="wsPreview">
+        <span class="ws-preview-placeholder">Выберите файл для предпросмотра</span>
+      </div>
+
+      <div class="ws-files-grid" id="wsFileList">
         <div class="ws-file-empty">Загрузите файлы для распознавания</div>
       </div>
 
       <div class="ws-context">
-        <label class="ws-context-label">Контекст для ИИ</label>
-        <textarea id="ocrContext" class="ws-context-input"
-          placeholder="Опишите, о чём текст — период, тема, автор. Это поможет нейросети корректнее распознавать рукопись."></textarea>
+        <div class="ws-context-grip" id="wsContextGrip"></div>
+        <div class="ws-context-inner">
+          <label class="ws-context-label">Контекст для ИИ</label>
+          <textarea id="ocrContext" class="ws-context-input"
+            placeholder="Опишите, о чём текст — период, тема, автор. Это поможет нейросети корректнее распознавать рукопись."></textarea>
+        </div>
       </div>
     </aside>
 

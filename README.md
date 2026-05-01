@@ -1,113 +1,101 @@
 # Scriptorium — Расшифровка рукописных документов
 
-Веб-приложение для автоматической расшифровки рукописных текстов с помощью нейронной сети Qwen2.5-VL через HuggingFace Inference API.
+Веб-приложение для автоматической расшифровки рукописных текстов с помощью мультимодальных языковых моделей.
 
 ## О проекте
 
 Scriptorium создан в рамках проекта «Цифровая кафедра». Основная задача — упростить работу историков, архивистов и исследователей с рукописными документами: письмами, дневниками, архивными материалами.
 
-Пользователь загружает изображение или PDF, нажимает «Распознать» — модель переводит рукопись в редактируемый текст. Результат можно поправить прямо в браузере и экспортировать в Word, PDF или TXT.
-
-Приложение имеет публичный лендинг (SaaS-стиль) с описанием инструментов и кнопками входа/регистрации. Визуальный стиль: светлая тема, синий акцент (#2563eb).
+Пользователь загружает изображение или PDF, выбирает OCR-модель, нажимает «Распознать» — модель переводит рукопись в редактируемый текст. Результат можно поправить прямо в браузере и экспортировать в Word, PDF или TXT.
 
 ## Возможности
 
 - Загрузка изображений (JPG, PNG, TIFF) и многостраничных PDF
-- Распознавание текста через модель Qwen2.5-VL-3B (HuggingFace Inference API)
+- Выбор OCR-модели из трёх вариантов (Groq Scout / Groq Maverick / Gemini Flash)
 - Редактор с цветовой разметкой источника каждого слова (OCR / база почерков / сокращения)
-- Настройка порога уверенности, яркости и контраста документа
-- Архив расшифрованных документов
+- Реальный confidence per-word через logprobs (Groq) — честная подсветка сомнительных слов
+- Серверная санация: убирает LaTeX-обёртки (`$1891$`→`1891`), Markdown-разметку, дубликаты строк
+- Настройка порога уверенности, яркости и контраста
+- Крупный предпросмотр выбранного файла + сетка миниатюр
 - Экспорт в DOCX, PDF, TXT
-- Пакетная обработка нескольких документов
-- Публичный лендинг с описанием инструментов
-- URL-маршрутизация: `/`, `/login`, `/home`, `/archive`, `/ocr`, `/profile`
+- Drag & Drop загрузка файлов
 
 ## Архитектура
 
 ```
 браузер (статика на GitHub Pages)
     ↕ HTTPS
-FastAPI-сервер (любой хостинг / локально)
-    ↕ HuggingFace Inference API
-Qwen2.5-VL-3B-Instruct
+FastAPI-сервер (HuggingFace Space: dmitry-402859-space.hf.space)
+    ├── Groq API  (llama-4-scout / llama-4-maverick)
+    └── Gemini API (gemini-2.0-flash)
 ```
 
 **Фронтенд** — чистый HTML/CSS/JS без фреймворков, хостится на GitHub Pages.
 
-**Бэкенд** — FastAPI-сервер (`server/server.py`). Не выполняет модель локально — делегирует распознавание в HuggingFace Inference API. Можно запустить локально или задеплоить на любой платформе.
+**Бэкенд** — FastAPI-сервер (`server/server.py`), задеплоен на HuggingFace Space.
+
+## Доступные модели
+
+| ID | Название | Провайдер | Когда использовать |
+|----|----------|-----------|--------------------|
+| `groq-scout` | Llama 4 Scout | Groq | Быстрое распознавание чистых сканов |
+| `groq-maverick` | Llama 4 Maverick | Groq | Качественный результат, сложные рукописи |
+| `gemini-flash` | Gemini 2.0 Flash | Google | Исторические рукописи, кириллица |
 
 ## Структура файлов
 
 ```
-scriptorium/          ← фронтенд (GitHub Pages)
-├── index.html        ← 5 экранов: landing, auth, dashboard, editor, profile
-├── 404.html          ← редирект для SPA-маршрутизации
-├── css/style.css
+scriptorium/
+├── index.html          ← SPA: landing, auth, dashboard, editor, profile
+├── 404.html            ← редирект для SPA-маршрутизации
+├── css/style.css       ← все стили
 ├── js/
-│   ├── api.js        ← подключение к OCR-серверу
-│   ├── auth.js       ← авторизация и навигация (goTo, SCREEN_PATHS)
-│   ├── dashboard.js  ← загрузка файлов, архив, экспорт
-│   ├── editor.js     ← редактор и viewport
-│   └── router.js     ← URL-маршрутизация (History API)
+│   ├── api.js          ← подключение к OCR-серверу, loadAvailableModels
+│   ├── auth.js         ← авторизация и навигация
+│   ├── dashboard.js    ← загрузка файлов, превью, экспорт
+│   ├── editor.js       ← OCR-конвейер, рендер слов, grip-resize
+│   └── router.js       ← URL-маршрутизация (History API)
 └── server/
-    ├── server.py         ← FastAPI-сервер, вызывает HuggingFace Inference API
-    └── requirements.txt  ← зависимости Python
-```
-
-### Маршруты
-
-| URL | Экран |
-|-----|-------|
-| `/` | Лендинг (публичный) |
-| `/login` | Форма входа |
-| `/register` | Форма регистрации |
-| `/home` | Dashboard — мои документы |
-| `/archive` | Dashboard — архив |
-| `/export` | Dashboard — история экспорта |
-| `/batch` | Dashboard — пакетная обработка |
-| `/ocr` | Редактор OCR |
-| `/profile` | Профиль пользователя |
-
-### Workflow при изменении логики сервера
-
-```
-Правишь server/server.py → git push → перезапускаешь сервер
+    ├── server.py       ← FastAPI + Groq/Gemini routing
+    └── requirements.txt
 ```
 
 ## Запуск
 
-### 1. Бэкенд
-
-1. Получи HuggingFace API-токен на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (тип: Read)
-2. Установи зависимости и запусти сервер:
+### 1. Бэкенд локально
 
 ```bash
 cd server
 pip install -r requirements.txt
-HF_TOKEN=hf_ваш_токен python server.py
+GROQ_API_KEY=gsk_xxx python server.py
+# Опционально: GEMINI_API_KEY=AIza_xxx
 ```
 
 Сервер запустится на `http://localhost:7860`.
 
 ### 2. Фронтенд
 
-Вставь URL сервера в `js/api.js`, строка 6:
-
 ```js
+// js/api.js, строка 5:
 var SPACE_URL = 'http://localhost:7860';
 ```
 
-Открой сайт на GitHub Pages — готово.
+### 3. Деплой на HuggingFace Space
 
-> Для публичного доступа задеплой сервер на HuggingFace Spaces, Render, Railway или любой VPS и вставь постоянный URL.
+1. `git push` — файлы `server/server.py` и `server/requirements.txt`
+2. HuggingFace Space → Settings → Variables and secrets → добавить:
+   - `GROQ_API_KEY` (обязательно — получить на [console.groq.com](https://console.groq.com))
+   - `GEMINI_API_KEY` (опционально — получить на [aistudio.google.com/apikey](https://aistudio.google.com/apikey))
+3. Restart Space, проверить: `curl https://dmitry-402859-space.hf.space/health`
 
 ## Технологии
 
 | Компонент | Технология |
 |-----------|-----------|
 | Фронтенд | HTML5, CSS3, Vanilla JS (без фреймворков) |
-| OCR-модель | [Qwen2.5-VL-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct) |
-| Сервер | FastAPI + uvicorn |
-| OCR API | HuggingFace Inference API |
+| OCR-провайдеры | Groq API, Google Gemini API |
+| OCR-модели | Llama 4 Scout, Llama 4 Maverick, Gemini 2.0 Flash |
+| Сервер | FastAPI + httpx + Pillow |
 | Хостинг фронтенда | GitHub Pages |
-| Хостинг бэкенда | Любой сервер / локально |
+| Хостинг бэкенда | HuggingFace Space (CPU Basic) |
+| PDF-рендеринг | PDF.js v3.11.174 (CDN) |

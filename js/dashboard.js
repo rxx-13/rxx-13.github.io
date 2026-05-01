@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════
-//  dashboard.js — Загрузка файлов, экспорт
+//  dashboard.js — Загрузка файлов, превью, экспорт
 // ════════════════════════════════════════════════════════
 
 // ── ГЛОБАЛЬНОЕ СОСТОЯНИЕ ───────────────────────────────
@@ -34,17 +34,14 @@ function addFileCard(file) {
   var empty = list.querySelector('.ws-file-empty');
   if (empty) empty.remove();
 
-  var row = document.createElement('div');
-  row.className = 'ws-file-row';
-  row.id = id;
-  row.innerHTML =
+  var card = document.createElement('div');
+  card.className = 'ws-file-card';
+  card.id = id;
+  card.innerHTML =
     '<div class="ws-file-thumb" id="thumb-' + id + '">' + (isPdf ? 'PDF' : '') + '</div>' +
-    '<div class="ws-file-info">' +
-      '<div class="ws-file-name" title="' + file.name + '">' + file.name + '</div>' +
-      '<div class="ws-file-meta">' + (file.size / 1024 / 1024).toFixed(1) + ' МБ</div>' +
-    '</div>';
-  row.onclick = function() { selectFile(id); };
-  list.insertBefore(row, list.firstChild);
+    '<div class="ws-file-name" title="' + file.name + '">' + file.name + '</div>';
+  card.onclick = function() { selectFile(id); };
+  list.insertBefore(card, list.firstChild);
 
   var reader = new FileReader();
   reader.onload = function(e2) {
@@ -53,6 +50,8 @@ function addFileCard(file) {
       var t = document.getElementById('thumb-' + id);
       if (t) { t.style.background = 'url(' + e2.target.result + ') center/cover no-repeat'; t.textContent = ''; }
     }
+    // Обновить preview если этот файл сейчас выбран
+    if (currentDocId === id) renderPreview(id);
   };
   reader.readAsDataURL(file);
 
@@ -60,12 +59,55 @@ function addFileCard(file) {
   showToast(file.name.slice(0, 28) + ' загружен');
 }
 
+// ── КРУПНЫЙ PREVIEW ВЫБРАННОГО ФАЙЛА ──────────────────
+function renderPreview(docId) {
+  var preview = document.getElementById('wsPreview');
+  if (!preview) return;
+
+  var doc = docId ? uploadedDocs[docId] : null;
+  if (!doc || !doc.dataUrl) {
+    preview.innerHTML = '<span class="ws-preview-placeholder">' +
+      (doc ? 'Загрузка…' : 'Выберите файл для предпросмотра') + '</span>';
+    return;
+  }
+
+  if (doc.type === 'application/pdf') {
+    preview.innerHTML = '<canvas id="previewCanvas"></canvas>';
+    var canvas = document.getElementById('previewCanvas');
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      var binary = atob(doc.dataUrl.split(',')[1]);
+      var bytes  = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      pdfjsLib.getDocument({ data: bytes }).promise.then(function(pdf) {
+        pdf.getPage(1).then(function(page) {
+          var vp    = page.getViewport({ scale: 1.0 });
+          var scale = Math.min((preview.clientWidth - 8) / vp.width,
+                               (preview.clientHeight - 8) / vp.height);
+          var scaled = page.getViewport({ scale: scale });
+          canvas.width  = scaled.width;
+          canvas.height = scaled.height;
+          page.render({ canvasContext: canvas.getContext('2d'), viewport: scaled });
+        });
+      }).catch(function() {
+        preview.innerHTML = '<span class="ws-preview-placeholder">Ошибка PDF-превью</span>';
+      });
+    } catch(e) {
+      preview.innerHTML = '<span class="ws-preview-placeholder">PDF</span>';
+    }
+  } else {
+    preview.innerHTML = '<img src="' + doc.dataUrl + '" alt="Предпросмотр">';
+  }
+}
+
 function selectFile(id) {
-  document.querySelectorAll('.ws-file-row').forEach(function(r) { r.classList.remove('active'); });
-  var row = document.getElementById(id);
-  if (row) row.classList.add('active');
+  document.querySelectorAll('.ws-file-card').forEach(function(r) { r.classList.remove('active'); });
+  var card = document.getElementById(id);
+  if (card) card.classList.add('active');
   currentDocId = id;
   currentPage  = 0;
+  renderPreview(id);
 }
 
 // ── DRAG & DROP на экран редактора ────────────────────

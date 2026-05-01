@@ -58,7 +58,7 @@ function setLoadingMsg(title, sub) {
   document.getElementById('loadingSubtitle').textContent = sub || '';
 }
 
-function onEngineChange(val) { /* в текущей версии только один движок */ }
+function onEngineChange(val) { /* модель выбирается через #engineSelect */ }
 
 // ── RECOGNIZE ──────────────────────────────────────────
 async function recognizeCurrentPage() {
@@ -91,7 +91,13 @@ async function runPipeline(docId, pageIdx, cropSel, context) {
   var doHW   = document.getElementById('stageHW').checked;
   var doAbbr = document.getElementById('stageAbbr').checked;
 
-  setLoadingMsg('OCR-распознавание…', 'Qwen2.5-VL на HuggingFace');
+  var sel = document.getElementById('engineSelect');
+  var modelLabel = 'OCR-модель';
+  if (sel && window.AVAILABLE_MODELS) {
+    var m = window.AVAILABLE_MODELS.find(function(x) { return x.id === sel.value; });
+    if (m) modelLabel = m.label;
+  }
+  setLoadingMsg('OCR-распознавание…', modelLabel);
   var words = await runHuggingFaceOCR(docId, pageIdx, context);
 
   setLoadingMsg('База почерков…', '');
@@ -230,3 +236,33 @@ function copyRecognizedText() {
   if (!words.length) { showToast('Нет текста'); return; }
   navigator.clipboard.writeText(words.join(' ')).then(function(){ showToast('Скопировано'); });
 }
+
+// ── РЕСАЙЗ БЛОКА КОНТЕКСТА СВЕРХУ ─────────────────────
+// Grip тянется вверх → textarea растёт вниз (блок фиксирован снизу)
+(function initContextGrip() {
+  window.addEventListener('DOMContentLoaded', function() {
+    var grip = document.getElementById('wsContextGrip');
+    var ta   = document.getElementById('ocrContext');
+    if (!grip || !ta) return;
+
+    var startY, startH;
+
+    grip.addEventListener('mousedown', function(e) {
+      startY = e.clientY;
+      startH = ta.offsetHeight;
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      e.preventDefault();
+    });
+
+    function onMove(e) {
+      var newH = Math.max(80, startH + (startY - e.clientY));
+      ta.style.minHeight = newH + 'px';
+    }
+
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+  });
+})();
