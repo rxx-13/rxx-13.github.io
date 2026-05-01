@@ -27,7 +27,9 @@ app.add_middleware(
 )
 
 GROQ_API_KEY  = os.environ.get("GROQ_API_KEY", "")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+def _get_gemini_key() -> str:
+    return os.environ.get("GEMINI_API_KEY", "")
 
 GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -203,7 +205,8 @@ def _call_groq(image_b64: str, context: str, model_name: str) -> dict:
 
 
 def _call_gemini(image_b64: str, context: str) -> dict:
-    if not GEMINI_API_KEY:
+    gemini_key = _get_gemini_key()
+    if not gemini_key:
         raise HTTPException(status_code=503, detail="GEMINI_API_KEY не задан в переменных окружения HuggingFace Space")
 
     user_text = "Перепиши текст с изображения."
@@ -226,7 +229,7 @@ def _call_gemini(image_b64: str, context: str) -> dict:
 
     resp = httpx.post(
         GEMINI_URL,
-        params={"key": GEMINI_API_KEY},
+        params={"key": gemini_key},
         json=payload,
         timeout=90.0,
     )
@@ -283,7 +286,7 @@ async def get_models():
             "description": m["description"],
             "available": (
                 bool(GROQ_API_KEY) if m["provider"] == "groq"
-                else bool(GEMINI_API_KEY) if m["provider"] == "gemini"
+                else bool(_get_gemini_key()) if m["provider"] == "gemini"
                 else False
             ),
         }
