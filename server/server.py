@@ -182,8 +182,6 @@ def _call_groq(image_b64: str, context: str, model_name: str) -> dict:
             },
         ],
         "max_tokens": 2048,
-        "logprobs": True,
-        "top_logprobs": 1,
     }
 
     resp = httpx.post(
