@@ -1179,7 +1179,7 @@
 
 /* ── Левая панель ── */
 .ws-left {
-  width: var(--ws-left-w, 420px);
+  width: var(--ws-left-w, 620px);
   min-width: 280px;
   max-width: 70vw;
   flex-shrink: 0;
@@ -1212,7 +1212,7 @@
 
 /* ── Крупный preview выбранного файла ── */
 .ws-preview {
-  height: var(--ws-preview-h, 240px);
+  height: var(--ws-preview-h, 290px);
   min-height: 80px;
   flex-shrink: 0;
   display: flex;

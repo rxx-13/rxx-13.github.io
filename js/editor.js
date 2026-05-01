@@ -285,7 +285,7 @@ window.addEventListener('DOMContentLoaded', function() {
   makeResizable({
     gripId: 'wsLeftGrip',
     axis: 'x',
-    getStart: function() { return left ? left.offsetWidth : 420; },
+    getStart: function() { return left ? left.offsetWidth : 620; },
     apply: function(delta, base) {
       var w = Math.max(280, Math.min(window.innerWidth * 0.7, base + delta));
       left.style.width = w + 'px';
@@ -297,7 +297,7 @@ window.addEventListener('DOMContentLoaded', function() {
   makeResizable({
     gripId: 'wsPreviewGrip',
     axis: 'y',
-    getStart: function() { return preview ? preview.offsetHeight : 240; },
+    getStart: function() { return preview ? preview.offsetHeight : 290; },
     apply: function(delta, base) {
       var h = Math.max(80, Math.min(600, base + delta));
       preview.style.height = h + 'px';
