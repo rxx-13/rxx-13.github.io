@@ -299,6 +299,15 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/debug-env")
+async def debug_env():
+    return {
+        "has_groq": bool(GROQ_API_KEY),
+        "has_gemini": bool(_get_gemini_key()),
+        "env_keys": [k for k in os.environ if "KEY" in k or "TOKEN" in k or "SECRET" in k],
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)
