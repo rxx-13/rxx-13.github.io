@@ -1179,9 +1179,11 @@
 
 /* ── Левая панель ── */
 .ws-left {
-  width: 420px;
+  width: var(--ws-left-w, 420px);
+  min-width: 280px;
+  max-width: 70vw;
   flex-shrink: 0;
-  border-right: 1px solid var(--border);
+  border-right: none;
   display: flex;
   flex-direction: column;
   background: white;
@@ -1210,9 +1212,9 @@
 
 /* ── Крупный preview выбранного файла ── */
 .ws-preview {
-  height: 240px;
+  height: var(--ws-preview-h, 240px);
+  min-height: 80px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1312,6 +1314,29 @@
 }
 
 .ws-context-grip:hover { background: var(--primary-pale); }
+
+.ws-left-grip {
+  width: 6px;
+  flex-shrink: 0;
+  background: var(--bg-dark);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  cursor: ew-resize;
+  transition: background 0.15s;
+  z-index: 1;
+}
+.ws-left-grip:hover { background: var(--primary-pale); }
+
+.ws-preview-grip {
+  height: 6px;
+  flex-shrink: 0;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  cursor: ns-resize;
+  transition: background 0.15s;
+}
+.ws-preview-grip:hover { background: var(--primary-pale); }
 
 .ws-context-inner {
   padding: 10px 16px 14px;
@@ -1479,8 +1504,9 @@
 
 /* ── Адаптив для /ocr ── */
 @media (max-width: 700px) {
-  .ws-left { width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .ws-left { width: 100% !important; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
   .workspace { flex-direction: column; }
-  .ws-preview { height: 160px; }
+  .ws-preview { height: 160px !important; }
   .ws-files-grid { grid-template-columns: repeat(4, 1fr); }
+  .ws-left-grip, .ws-preview-grip { display: none; }
 }

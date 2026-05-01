@@ -237,32 +237,83 @@ function copyRecognizedText() {
   navigator.clipboard.writeText(words.join(' ')).then(function(){ showToast('Скопировано'); });
 }
 
-// ── РЕСАЙЗ БЛОКА КОНТЕКСТА СВЕРХУ ─────────────────────
-// Grip тянется вверх → textarea растёт вниз (блок фиксирован снизу)
-(function initContextGrip() {
-  window.addEventListener('DOMContentLoaded', function() {
-    var grip = document.getElementById('wsContextGrip');
-    var ta   = document.getElementById('ocrContext');
-    if (!grip || !ta) return;
+// ── РЕСАЙЗЕРЫ ЛЕВОЙ ПАНЕЛИ ────────────────────────────
+function makeResizable(opts) {
+  var grip = document.getElementById(opts.gripId);
+  if (!grip) return;
+  var start, base;
 
-    var startY, startH;
-
-    grip.addEventListener('mousedown', function(e) {
-      startY = e.clientY;
-      startH = ta.offsetHeight;
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
-      e.preventDefault();
-    });
-
-    function onMove(e) {
-      var newH = Math.max(80, startH + (startY - e.clientY));
-      ta.style.minHeight = newH + 'px';
-    }
-
-    function onUp() {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    }
+  grip.addEventListener('mousedown', function(e) {
+    start = (opts.axis === 'x') ? e.clientX : e.clientY;
+    base = opts.getStart();
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
   });
-})();
+
+  function onMove(e) {
+    var cur = (opts.axis === 'x') ? e.clientX : e.clientY;
+    opts.apply(cur - start, base);
+  }
+  function onUp() {
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    if (opts.storageKey) {
+      try { localStorage.setItem(opts.storageKey, opts.getStart()); } catch(_) {}
+    }
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  var left    = document.querySelector('.ws-left');
+  var preview = document.getElementById('wsPreview');
+  var ta      = document.getElementById('ocrContext');
+
+  // Restore сохранённых размеров
+  try {
+    var savedLeft = parseInt(localStorage.getItem('ws-left-w'), 10);
+    if (savedLeft && left) left.style.width = savedLeft + 'px';
+    var savedPrev = parseInt(localStorage.getItem('ws-preview-h'), 10);
+    if (savedPrev && preview) preview.style.height = savedPrev + 'px';
+    var savedCtx = parseInt(localStorage.getItem('ws-context-h'), 10);
+    if (savedCtx && ta) ta.style.minHeight = savedCtx + 'px';
+  } catch(_) {}
+
+  // 1. Ширина левой панели (горизонтальный grip)
+  makeResizable({
+    gripId: 'wsLeftGrip',
+    axis: 'x',
+    getStart: function() { return left ? left.offsetWidth : 420; },
+    apply: function(delta, base) {
+      var w = Math.max(280, Math.min(window.innerWidth * 0.7, base + delta));
+      left.style.width = w + 'px';
+    },
+    storageKey: 'ws-left-w'
+  });
+
+  // 2. Высота превью
+  makeResizable({
+    gripId: 'wsPreviewGrip',
+    axis: 'y',
+    getStart: function() { return preview ? preview.offsetHeight : 240; },
+    apply: function(delta, base) {
+      var h = Math.max(80, Math.min(600, base + delta));
+      preview.style.height = h + 'px';
+    },
+    storageKey: 'ws-preview-h'
+  });
+
+  // 3. Высота контекста — grip сверху, дельта инвертируется
+  makeResizable({
+    gripId: 'wsContextGrip',
+    axis: 'y',
+    getStart: function() { return ta ? ta.offsetHeight : 80; },
+    apply: function(delta, base) {
+      var h = Math.max(80, base - delta);
+      ta.style.minHeight = h + 'px';
+    },
+    storageKey: 'ws-context-h'
+  });
+});
