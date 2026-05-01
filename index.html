@@ -108,7 +108,59 @@
             oninput="updateSliderLabel('sliderContrast','contrastVal',100)">
           <span id="contrastVal">100%</span>
         </div>
-        <!-- Место под будущие настройки (почерки, сокращения и т.п.) -->
+        <div class="adv-divider"></div>
+
+        <!-- Постобработка (активно) -->
+        <div class="adv-check">
+          <label class="adv-check-label">
+            <input type="checkbox" id="stageHW" checked>
+            База почерков
+          </label>
+          <span class="adv-check-hint">замена типичных ошибок распознавания</span>
+        </div>
+        <div class="adv-check">
+          <label class="adv-check-label">
+            <input type="checkbox" id="stageAbbr" checked>
+            Сокращения
+          </label>
+          <span class="adv-check-hint">расшифровка архивных сокращений</span>
+        </div>
+
+        <div class="adv-divider"></div>
+
+        <!-- Улучшения качества (не реализованы) -->
+        <div class="adv-check adv-check--soon">
+          <label class="adv-check-label">
+            <input type="checkbox" disabled>
+            Двойная проверка
+          </label>
+          <span class="adv-badge">скоро</span>
+          <span class="adv-check-hint">второй проход для сомнительных слов</span>
+        </div>
+        <div class="adv-check adv-check--soon">
+          <label class="adv-check-label">
+            <input type="checkbox" disabled>
+            Chain-of-thought
+          </label>
+          <span class="adv-badge">скоро</span>
+          <span class="adv-check-hint">модель сначала описывает почерк, потом читает</span>
+        </div>
+        <div class="adv-check adv-check--soon">
+          <label class="adv-check-label">
+            <input type="checkbox" disabled>
+            Few-shot (примеры)
+          </label>
+          <span class="adv-badge">скоро</span>
+          <span class="adv-check-hint">подмешивать образцы похожих рукописей в запрос</span>
+        </div>
+        <div class="adv-check adv-check--soon">
+          <label class="adv-check-label">
+            <input type="checkbox" disabled>
+            Разбивка на фрагменты
+          </label>
+          <span class="adv-badge">скоро</span>
+          <span class="adv-check-hint">крупные страницы режутся на плитки</span>
+        </div>
       </div>
 
       <div class="ws-text-panel">
@@ -150,9 +202,6 @@
 <!-- ═══ TOAST ═══ -->
 <div id="toastEl" style="display:none" class="toast"></div>
 
-<!-- Скрытые флаги совместимости (используются в pipeline, задел на будущее) -->
-<input type="checkbox" id="stageHW" checked style="display:none;">
-<input type="checkbox" id="stageAbbr" checked style="display:none;">
 <select id="langSelect" style="display:none;"><option value="auto" selected></option></select>
 
 <!-- Порядок важен: сначала общие данные, потом логика -->
